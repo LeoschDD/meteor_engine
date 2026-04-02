@@ -10,7 +10,7 @@ target_sources(editor
 )
 
 target_include_directories(editor
-    PUBLIC
+    PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 

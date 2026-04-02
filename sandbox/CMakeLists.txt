@@ -15,7 +15,7 @@ target_sources(sandbox_library
 
 target_include_directories(sandbox_library
     PUBLIC
-        ${SANDBOX_SRC}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 target_link_libraries(sandbox_library 
@@ -23,8 +23,8 @@ target_link_libraries(sandbox_library
         meteor_engine
 )
 
-target_compile_definitions(sandbox_library 
-    PUBLIC
+target_compile_definitions(sandbox_library
+    PRIVATE
         SANDBOX_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
@@ -32,6 +32,5 @@ add_executable(sandbox src/main.cpp)
 
 target_link_libraries(sandbox
     PRIVATE
-        meteor_engine
         sandbox_library
 )
