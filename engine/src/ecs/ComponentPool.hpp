@@ -11,6 +11,8 @@ namespace meteor::ecs
     public:
         virtual ~ComponentPoolBase() = default;
         virtual void Erase(EntityId entity_id) = 0;
+        virtual bool Contains(EntityId entity_id) const = 0;
+        virtual const std::vector<EntityId>& GetEntities() const = 0;
     };
 
     template <typename C>
@@ -121,7 +123,8 @@ namespace meteor::ecs
             return index ? &components_[*index] : nullptr;
         }
 
+        bool Contains(EntityId entity_id) const override { return FindIndexSlot(entity_id); }
         const std::vector<C>& GetComponents() const { return components_; } 
-        const std::vector<EntityId>& GetEntities() const { return entities_; }
+        const std::vector<EntityId>& GetEntities() const override { return entities_; }
     };
 }

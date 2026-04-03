@@ -5,6 +5,9 @@
 
 namespace meteor::ecs
 {
+    template <typename... Cs>
+    class View;
+
     inline std::atomic<ComponentId> next_component_id{0};
 
     template <typename C>
@@ -16,6 +19,9 @@ namespace meteor::ecs
 
     class Registry
     {
+        template <typename... Cs>
+        friend class View;
+
     private:
         std::unordered_map<ComponentId, std::unique_ptr<ComponentPoolBase>> pools_;
         std::unordered_set<EntityId> alive_;
@@ -156,6 +162,12 @@ namespace meteor::ecs
         [[nodiscard]] bool Alive(EntityId entity_id) const noexcept
         {
             return alive_.contains(entity_id);
+        }
+
+        template <typename... Cs>
+        ecs::View<Cs...> View()
+        {
+            return ecs::View<Cs...>(this);
         }
     };
 
