@@ -10,11 +10,11 @@ namespace meteor::ecs
     {
     public:
         virtual ~ComponentPoolBase() = default;
-        virtual void Remove(EntityId entity_id) = 0;
+        virtual void Erase(EntityId entity_id) = 0;
     };
 
     template <typename C>
-    class ComponentPool : ComponentPoolBase
+    class ComponentPool : public ComponentPoolBase
     {
     private:
         static constexpr uint16_t PAGE_SIZE = 4096;
@@ -86,7 +86,7 @@ namespace meteor::ecs
             }            
         }
 
-        void Remove(EntityId entity_id) override
+        void Erase(EntityId entity_id) override
         {
             Index* index = FindIndexSlot(entity_id);
             if (!index || components_.empty()) return;

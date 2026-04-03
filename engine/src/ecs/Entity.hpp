@@ -30,7 +30,7 @@ namespace meteor::ecs
         template<typename C>
         [[nodiscard]] const C* Get() const noexcept;
 
-        [[nodiscard]] bool Valid() const noexcept;
+        [[nodiscard]] bool Alive() const noexcept;
 
         EntityId Id() const;
     };

@@ -16,6 +16,7 @@
 #include <tuple>
 #include <csignal>
 #include <cstdlib>
+#include <unordered_set>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
