@@ -31,7 +31,7 @@ namespace meteor::ecs
 
             if (pools_.contains(component_id))
             {
-                return static_cast<ComponentPool<C>*>(pools_[component_id].get());
+                return static_cast<ComponentPool<C>*>(pools_.at(component_id).get());
             }
             return nullptr;
         } 
@@ -43,7 +43,7 @@ namespace meteor::ecs
 
             if (pools_.contains(component_id))
             {
-                return static_cast<ComponentPool<C>*>(pools_[component_id].get());
+                return static_cast<const ComponentPool<C>*>(pools_.at(component_id).get());
             }
             return nullptr;
         } 
@@ -134,7 +134,7 @@ namespace meteor::ecs
         template<typename C>
         [[nodiscard]] C* GetComponent(EntityId entity_id) noexcept
         {
-            if (!Alive(entity_id)) return;
+            if (!Alive(entity_id)) return nullptr;
             if (auto* pool = GetComponentPool<C>())
             {
                 return pool->GetComponent(entity_id);
@@ -145,7 +145,7 @@ namespace meteor::ecs
         template<typename C>
         [[nodiscard]] const C* GetComponent(EntityId entity_id) const noexcept
         {
-            if (!Alive(entity_id)) return;
+            if (!Alive(entity_id)) return nullptr;
             if (const auto* pool = GetComponentPool<C>())
             {
                 return pool->GetComponent(entity_id);
@@ -158,6 +158,11 @@ namespace meteor::ecs
             return alive_.contains(entity_id);
         }
     };
+
+    inline Entity::Entity(EntityId entity_id, Registry* registry)
+        : entity_id_(entity_id)
+        , registry_(registry)
+    {}
 
     template<typename C, typename... Args>
     inline void Entity::Add(Args&&... args)
