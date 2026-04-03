@@ -10,8 +10,7 @@ meteor::Application::~Application()
 
 void meteor::Application::Run()
 {
-    while (true)
+    while (running_)
     {
-
     }
 }

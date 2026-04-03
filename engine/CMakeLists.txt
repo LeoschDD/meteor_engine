@@ -15,7 +15,7 @@ target_include_directories(meteor_engine
 )
 
 target_precompile_headers(meteor_engine 
-    PUBLIC 
+    PRIVATE 
         ${CMAKE_CURRENT_SOURCE_DIR}/src/core/Headers.hpp
 )
 
