@@ -10,9 +10,9 @@ namespace meteor::ecs
     {
     public:
         virtual ~ComponentPoolBase() = default;
-        virtual void Erase(EntityId entity_id) = 0;
-        virtual bool Contains(EntityId entity_id) const = 0;
-        virtual const std::vector<EntityId>& GetEntities() const = 0;
+        virtual void Erase(Entity entity) = 0;
+        virtual bool Contains(Entity entity) const = 0;
+        virtual const std::vector<Entity>& GetEntities() const = 0;
     };
 
     template <typename C>
@@ -23,14 +23,14 @@ namespace meteor::ecs
         using Page = std::array<Index, PAGE_SIZE>;
 
         std::vector<C> components_;
-        std::vector<EntityId> entities_;
+        std::vector<Entity> entities_;
         std::vector<std::unique_ptr<Page>> indices_;
 
     private:
-        Index& EnsureIndexSlot(EntityId entity_id)
+        Index& EnsureIndexSlot(Entity entity)
         {
-            const size_t page =  entity_id / PAGE_SIZE;
-            const size_t index = entity_id & (PAGE_SIZE - 1);
+            const size_t page =  entity / PAGE_SIZE;
+            const size_t index = entity & (PAGE_SIZE - 1);
             
             if (indices_.size() <= page) indices_.resize(page + 1);
 
@@ -42,20 +42,20 @@ namespace meteor::ecs
             return (*indices_[page])[index];
         }
 
-        Index* FindIndexSlot(EntityId entity_id)
+        Index* FindIndexSlot(Entity entity)
         {
-            const size_t page =  entity_id / PAGE_SIZE;
-            const size_t index = entity_id & (PAGE_SIZE - 1);
+            const size_t page =  entity / PAGE_SIZE;
+            const size_t index = entity & (PAGE_SIZE - 1);
             
             if (indices_.size() <= page || !indices_[page]) return nullptr;
             Index& slot = (*indices_[page])[index];
             return (slot == NULL_INDEX) ? nullptr : &slot;
         }
 
-        const Index* FindIndexSlot(EntityId entity_id) const
+        const Index* FindIndexSlot(Entity entity) const
         {
-            const size_t page =  entity_id / PAGE_SIZE;
-            const size_t index = entity_id & (PAGE_SIZE - 1);
+            const size_t page =  entity / PAGE_SIZE;
+            const size_t index = entity & (PAGE_SIZE - 1);
             
             if (indices_.size() <= page || !indices_[page]) return nullptr;
             const Index& slot = (*indices_[page])[index];
@@ -67,9 +67,9 @@ namespace meteor::ecs
         ~ComponentPool() = default;
     
         template <typename... Args>
-        void Emplace(EntityId entity_id, Args&&... args) 
+        void Emplace(Entity entity, Args&&... args) 
         {
-            Index& index = EnsureIndexSlot(entity_id);
+            Index& index = EnsureIndexSlot(entity);
 
             if (index == NULL_INDEX)
             {
@@ -79,7 +79,7 @@ namespace meteor::ecs
                     return;
                 }
                 components_.emplace_back(std::forward<Args>(args)...);
-                entities_.push_back(entity_id);
+                entities_.push_back(entity);
                 index = static_cast<Index>(components_.size()) - 1;
             }
             else 
@@ -88,16 +88,16 @@ namespace meteor::ecs
             }            
         }
 
-        void Erase(EntityId entity_id) override
+        void Erase(Entity entity) override
         {
-            Index* index = FindIndexSlot(entity_id);
+            Index* index = FindIndexSlot(entity);
             if (!index || components_.empty()) return;
             
             Index last = static_cast<Index>(components_.size()) - 1;
 
             if (*index != last)
             {
-                EntityId moved = entities_[last];
+                Entity moved = entities_[last];
                 components_[*index] = std::move(components_[last]);
                 entities_[*index] = moved;
 
@@ -111,20 +111,20 @@ namespace meteor::ecs
             *index = NULL_INDEX;
         }
 
-        C* GetComponent(EntityId entity_id)
+        C* GetComponent(Entity entity)
         {
-            Index* index = FindIndexSlot(entity_id);
+            Index* index = FindIndexSlot(entity);
             return index ? &components_[*index] : nullptr;
         }
 
-        const C* GetComponent(EntityId entity_id) const
+        const C* GetComponent(Entity entity) const
         {
-            const Index* index = FindIndexSlot(entity_id);
+            const Index* index = FindIndexSlot(entity);
             return index ? &components_[*index] : nullptr;
         }
 
-        bool Contains(EntityId entity_id) const override { return FindIndexSlot(entity_id); }
+        bool Contains(Entity entity) const override { return FindIndexSlot(entity); }
         const std::vector<C>& GetComponents() const { return components_; } 
-        const std::vector<EntityId>& GetEntities() const override { return entities_; }
+        const std::vector<Entity>& GetEntities() const override { return entities_; }
     };
 }

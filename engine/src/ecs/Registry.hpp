@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ecs/ComponentPool.hpp"
-#include "ecs/Entity.hpp"
 
 namespace meteor::ecs
 {
@@ -24,10 +23,10 @@ namespace meteor::ecs
 
     private:
         std::unordered_map<ComponentId, std::unique_ptr<ComponentPoolBase>> pools_;
-        std::unordered_set<EntityId> alive_;
+        std::unordered_set<Entity> alive_;
 
-        std::queue<EntityId> available_;
-        EntityId next_id_{};
+        std::queue<Entity> available_;
+        Entity next_id_{};
 
     private:
         template <typename C>
@@ -76,46 +75,46 @@ namespace meteor::ecs
 
         Entity Create()
         {
-            EntityId entity_id = NULL_ENTITY;
+            Entity entity = NULL_ENTITY;
 
             if (!available_.empty()) 
             {
-                entity_id = available_.front();
+                entity = available_.front();
                 available_.pop();
             }
             else if (next_id_ < MAX_ENTITIES)
             {
-                entity_id = next_id_++;
+                entity = next_id_++;
             }
             else
             {
                 METEOR_CORE_ERROR("Entity limit reached");
-                return Entity(entity_id, this);
+                return entity;
             }
-            alive_.emplace(entity_id);
-            return Entity(entity_id, this);
+            alive_.emplace(entity);
+            return entity;
         }
 
-        void Erase(EntityId entity_id)
+        void Erase(Entity entity)
         {
-            if (alive_.contains(entity_id))
+            if (alive_.contains(entity))
             {
-                alive_.erase(entity_id);
+                alive_.erase(entity);
                 for (auto& [key, pool] : pools_)
                 {
-                    pool->Erase(entity_id);
+                    pool->Erase(entity);
                 }
-                available_.push(entity_id);
+                available_.push(entity);
             }
         }
 
         template<typename C, typename... Args>
-        void AddComponent(EntityId entity_id, Args&&... args)
+        void AddComponent(Entity entity, Args&&... args)
         {
-            if (!Alive(entity_id)) return;
+            if (!Alive(entity)) return;
             if (auto* pool = GetComponentPool<C>())
             {
-                pool->Emplace(entity_id, std::forward<Args>(args)...);
+                pool->Emplace(entity, std::forward<Args>(args)...);
             }
             else
             {
@@ -124,12 +123,12 @@ namespace meteor::ecs
         }
 
         template<typename C>
-        void RemoveComponent(EntityId entity_id)
+        void RemoveComponent(Entity entity)
         {	
-            if (!Alive(entity_id)) return;
+            if (!Alive(entity)) return;
             if (auto* pool = GetComponentPool<C>())
             {
-                pool->Erase(entity_id);
+                pool->Erase(entity);
             }
             else
             {
@@ -138,30 +137,30 @@ namespace meteor::ecs
         }
 
         template<typename C>
-        [[nodiscard]] C* GetComponent(EntityId entity_id) noexcept
+        [[nodiscard]] C* GetComponent(Entity entity) noexcept
         {
-            if (!Alive(entity_id)) return nullptr;
+            if (!Alive(entity)) return nullptr;
             if (auto* pool = GetComponentPool<C>())
             {
-                return pool->GetComponent(entity_id);
+                return pool->GetComponent(entity);
             }
             return nullptr;
         }
 
         template<typename C>
-        [[nodiscard]] const C* GetComponent(EntityId entity_id) const noexcept
+        [[nodiscard]] const C* GetComponent(Entity entity) const noexcept
         {
-            if (!Alive(entity_id)) return nullptr;
+            if (!Alive(entity)) return nullptr;
             if (const auto* pool = GetComponentPool<C>())
             {
-                return pool->GetComponent(entity_id);
+                return pool->GetComponent(entity);
             }
             return nullptr;
         }
 
-        [[nodiscard]] bool Alive(EntityId entity_id) const noexcept
+        [[nodiscard]] bool Alive(Entity entity) const noexcept
         {
-            return alive_.contains(entity_id);
+            return alive_.contains(entity);
         }
 
         template <typename... Cs>
@@ -170,45 +169,4 @@ namespace meteor::ecs
             return ecs::View<Cs...>(this);
         }
     };
-
-    inline Entity::Entity(EntityId entity_id, Registry* registry)
-        : entity_id_(entity_id)
-        , registry_(registry)
-    {}
-
-    template<typename C, typename... Args>
-    inline void Entity::Add(Args&&... args)
-    {
-        registry_->AddComponent<C>(entity_id_, std::forward<Args>(args)...);
-    }
-
-    template<typename C>
-    inline void Entity::Remove()
-    {
-        registry_->RemoveComponent<C>(entity_id_);
-    }
-
-    inline void Entity::Destroy()
-    {
-        registry_->Erase(entity_id_);
-    }
-
-    template<typename C>
-    [[nodiscard]] inline C* Entity::Get() noexcept
-    {
-        return registry_->GetComponent<C>(entity_id_);
-    }
-
-    template<typename C>
-    [[nodiscard]] inline const C* Entity::Get() const noexcept
-    {
-        return registry_->GetComponent<C>(entity_id_);
-    }
-
-    [[nodiscard]] inline bool Entity::Alive() const noexcept
-    {
-        return registry_->Alive(entity_id_);
-    }
-
-    inline EntityId Entity::Id() const {return entity_id_;}
 }

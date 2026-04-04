@@ -8,46 +8,56 @@ namespace meteor::ecs
     template <typename... Cs>
     class View
     {
+        friend class Registry;
     private:
-        Registry* registry_{nullptr};
-        std::array<ComponentPoolBase*, sizeof...(Cs)> pools_;
+        std::tuple<ComponentPool<Cs>*...> pools_;
+        bool valid_{false};
 
     private:
         ComponentPoolBase* FindSmallestPool()
         {
-            return *std::min_element(pools_.begin(), pools_.end(), 
-                [](ComponentPoolBase* a, ComponentPoolBase* b) 
+            if constexpr (sizeof...(Cs) == 0) return nullptr;
+            if (!valid_) return nullptr;
+
+            std::array<ComponentPoolBase*, sizeof...(Cs)> bases{std::get<ComponentPool<Cs>*>(pools_)...};
+            return *std::min_element(bases.begin(), bases.end(),
+                [](ComponentPoolBase* a, ComponentPoolBase* b)
                 {
                     return a->GetEntities().size() < b->GetEntities().size();
                 }
             );
         }
 
-        bool PoolsContain(EntityId entity_id) const
+        bool PoolsContain(Entity entity) const
         {
-            for (auto* pool : pools_)
+            return (std::get<ComponentPool<Cs>*>(pools_)->Contains(entity) && ...);
+        }
+
+        View(Registry* registry)
+            : pools_{registry->GetComponentPool<Cs>()...}
+            , valid_{(... && (std::get<ComponentPool<Cs>*>(pools_) != nullptr))}
+        {
+            if (!valid_)
             {
-                if (!pool->Contains(entity_id)) return false;
+                METEOR_CORE_ERROR("View called with unregistered component");
             }
-            return true;
         }
 
     public:
-        View(Registry* registry)
-            : registry_(registry)
-            , pools_({registry_->GetComponentPool<Cs>()...})
-        {}
-
         template <typename Fn>
         void Each(Fn&& fn)
         {
-            const auto& entities = FindSmallestPool()->GetEntities();
+            auto* smallest = FindSmallestPool();
+            if (!smallest) return;
+
+            const auto& entities = smallest->GetEntities();
+
             for (size_t i = 0; i < entities.size(); ++i)
             {
-                EntityId entity_id = entities[i];
-                if (PoolsContain(entity_id))
+                Entity entity = entities[i];
+                if (PoolsContain(entity))
                 {
-                    fn(entity_id, *registry_->GetComponent<Cs>(entity_id)...);
+                    fn(entity, *std::get<ComponentPool<Cs>*>(pools_)->GetComponent(entity)...);
                 }
             }
         }

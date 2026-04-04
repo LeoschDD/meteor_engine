@@ -4,7 +4,7 @@
 
 namespace meteor::ecs
 {
-    using EntityId = uint32_t;
+    using Entity = uint32_t;
     using ComponentId = uint32_t;
     using Index = uint32_t;
 }
