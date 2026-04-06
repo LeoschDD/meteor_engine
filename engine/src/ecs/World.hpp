@@ -149,7 +149,7 @@ namespace meteor::ecs
         }
 
         template<typename... Components>
-        [[nodiscard]] ecs::View<Components...> View(Components&... components)
+        [[nodiscard]] ecs::View<Components...> View()
         {
             return ecs::View<Components...>(GetPool<Components>()...);
         }
