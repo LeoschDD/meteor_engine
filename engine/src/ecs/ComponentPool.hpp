@@ -12,12 +12,10 @@ namespace meteor::ecs::internal
 
     public:
         using Iterator = PackedComponentsType::const_iterator;
-
-    private:
     
     public:
         ComponentPool() = default;
-        ~ComponentPool() = default;
+        ComponentPool(ComponentPool&&) = default;
 
         template<typename... Args>
         void Emplace(Entity entity, Args&&... args)
@@ -52,7 +50,7 @@ namespace meteor::ecs::internal
             SparseSet::Erase(entity);
         }
 
-        void Sort()
+        void Sort() override
         {
             std::vector<Entity> packed_copy(SparseSet::begin(), SparseSet::end());
             PackedComponentsType temp(Size());
@@ -74,15 +72,41 @@ namespace meteor::ecs::internal
             packed_components_.clear();
         }
 
-        [[nodiscard]] Iterator begin() const noexcept override
+        [[nodiscard]] Iterator begin() const noexcept
         {
             return Iterator(packed_components_.data());
         }
 
-        [[nodiscard]] Iterator end() const noexcept override
+        [[nodiscard]] Iterator end() const noexcept
         {
             return Iterator(packed_components_.data() + packed_components_.size());
         }
+
+        [[nodiscard]] Component& Get(Entity entity)
+        {
+            assert(Contains(entity));
+            return packed_components_[GetIndex(entity)];
+        }
+        
+        [[nodiscard]] const Component& Get(Entity entity) const
+        {
+            assert(Contains(entity));
+            return packed_components_[GetIndex(entity)];
+        }
+
+        [[nodiscard]] Component* TryGet(Entity entity)
+        {
+            size_t index = GetIndex(entity);
+            return (index != INVALID_INDEX) ? &packed_components_[index] : nullptr;
+        }
+
+        [[nodiscard]] const Component* TryGet(Entity entity) const
+        {
+            size_t index = GetIndex(entity);
+            return (index != INVALID_INDEX) ? &packed_components_[index] : nullptr;
+        }
+
+        ComponentPool& operator=(ComponentPool&&) = default;
 
     private:
         PackedComponentsType packed_components_;

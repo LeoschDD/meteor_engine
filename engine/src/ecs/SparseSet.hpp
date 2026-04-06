@@ -134,7 +134,7 @@ namespace meteor::ecs::internal
             *slot = INVALID_INDEX;
         }
 
-        void Sort()
+        virtual void Sort()
         {
             std::sort(packed_.begin(), packed_.end(), [&](Entity a, Entity b){
                 return a > b;
@@ -142,7 +142,7 @@ namespace meteor::ecs::internal
             RebuildSparse();
         }
 
-        void Clear() noexcept
+        virtual void Clear() noexcept
         {
             DeletePages();
             packed_.clear();
@@ -170,6 +170,16 @@ namespace meteor::ecs::internal
             return packed_.at(index);
         }
 
+        [[nodiscard]] Iterator begin() const noexcept
+        {
+            return Iterator(packed_.data());
+        }
+
+        [[nodiscard]] Iterator end() const noexcept
+        {
+            return Iterator(packed_.data() + packed_.size());
+        }
+
         [[nodiscard]] Entity operator[](size_t index) const
         {
             return packed_[index];
@@ -183,16 +193,6 @@ namespace meteor::ecs::internal
             packed_ = std::move(other.packed_);
             sparse_ = std::move(other.sparse_);
             return *this;
-        }
-
-        [[nodiscard]] Iterator begin() const noexcept
-        {
-            return Iterator(packed_.data());
-        }
-
-        [[nodiscard]] Iterator end() const noexcept
-        {
-            return Iterator(packed_.data() + packed_.size());
         }
 
     private:
