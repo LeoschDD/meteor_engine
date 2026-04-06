@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/Headers.hpp"
+#include "core/Log.hpp"
 #include "ecs/Types.hpp"
 #include "ecs/Config.hpp"
 
@@ -86,18 +87,25 @@ namespace meteor::ecs::internal
         {
             auto& slot = EnsureSparseSlot(entity);
 
-            if (slot == INVALID_INDEX)
+            if (slot != INVALID_INDEX)
             {
-                packed_.push_back(entity);
-                slot = packed_.size() - 1;
+                if (EntityVersion(packed_[slot]) != EntityVersion(entity))
+                {
+                    METEOR_CORE_WARN("Inserting entity that exists with different version");
+                    packed_[slot] = entity;
+                }
+                return Iterator(packed_.data() + slot);
             }
+            packed_.push_back(entity);
+            slot = packed_.size() - 1;
             return Iterator(packed_.data() + slot);
         }
 
         [[nodiscard]] size_t GetIndex(Entity entity) const
         {
             auto* slot = FindSparseSlot(entity);
-            return slot ? *slot : INVALID_INDEX;
+            if (!slot || *slot == INVALID_INDEX) return INVALID_INDEX;
+            return EntityVersion(packed_[*slot]) == EntityVersion(entity) ? *slot : INVALID_INDEX;
         }
 
     public:
@@ -116,7 +124,8 @@ namespace meteor::ecs::internal
         {
             auto* slot = FindSparseSlot(entity);
             if (!slot || Empty() || *slot == INVALID_INDEX) return;
-            
+            if (EntityVersion(packed_[*slot]) != EntityVersion(entity)) return;
+
             size_t last = Size() - 1;
 
             if (*slot != last)
@@ -148,8 +157,9 @@ namespace meteor::ecs::internal
 
         [[nodiscard]] bool Contains(Entity entity) const
         {
-            auto* slot = FindSparseSlot(entity); 
-            return slot ? *slot != INVALID_INDEX : false;
+            auto* slot = FindSparseSlot(entity);
+            if (!slot || *slot == INVALID_INDEX) return false;
+            return EntityVersion(packed_[*slot]) == EntityVersion(entity);
         }
 
         [[nodiscard]] bool Empty() const noexcept

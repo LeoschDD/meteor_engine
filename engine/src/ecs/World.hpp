@@ -5,11 +5,13 @@
 
 namespace meteor::ecs
 {
+    using namespace internal;
+
     class World
     {
     private:
-        using PoolContainer = std::unordered_map<uint32_t, std::unique_ptr<internal::SparseSet>>;
-
+        using PoolContainer = std::unordered_map<uint32_t, std::unique_ptr<SparseSet>>;
+        using EntityQueue = std::queue<Entity>;
     public:
         World() = default;
 
@@ -40,7 +42,7 @@ namespace meteor::ecs
             }
             else if (next_id_ < MAX_ENTITY_ID)
             {
-                entity = internal::CreateEntity(next_id_++, 0);
+                entity = CreateEntity(next_id_++, 0);
             }
             else
             {
@@ -53,23 +55,33 @@ namespace meteor::ecs
 
         void Erase(Entity entity)
         {
-            if (entities_.Contains(entity))
+            if (Valid(entity))
             {
                 entities_.Erase(entity);
                 for (auto& [key, pool] : pools_)
                 {
                     pool->Erase(entity);
                 }
-                recycled_.push(internal::CreateEntity(EntityId(entity), EntityVersion(entity) + 1));
+                Entity next_version = EntityVersion(entity) + 1;
+                if (next_version >= MAX_VERSION)
+                {
+                    METEOR_CORE_WARN("Entity {} version wrapped to 0", EntityId(entity));
+                    next_version = 0;
+                }
+                recycled_.push(CreateEntity(EntityId(entity), next_version));
             }
         }
 
+        [[nodiscard]] bool Valid(Entity entity) const
+        {
+            return entity != INVALID_ENTITY && entities_.Contains(entity);
+        }
 
     private:
-        internal::EntityStorage entities_;
+        EntityStorage entities_;
         PoolContainer pools_;
 
-        std::queue<Entity> recycled_;
-        Entity next_id_;
+        EntityQueue recycled_;
+        Entity next_id_{0};
     };
 }
