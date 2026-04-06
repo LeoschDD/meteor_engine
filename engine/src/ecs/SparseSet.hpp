@@ -3,89 +3,9 @@
 #include "core/Headers.hpp"
 #include "ecs/Entity.hpp"
 #include "ecs/Config.hpp"
-#include <type_traits>
 
 namespace meteor::ecs::internal
 {
-    template<typename Container>
-    class SparseSetIterator
-    {
-    public:
-        using ValueType = typename Container::value_type;
-        using PointerType = typename Container::const_pointer;
-        using ReferenceType = typename Container::const_reference;
-        using DifferenceType = typename Container::difference_type;
-
-    public:
-        constexpr SparseSetIterator() noexcept
-            : ptr_{}
-            , offset_{} {}
-
-        constexpr SparseSetIterator(PointerType ptr, DifferenceType index) noexcept
-            : ptr_(ptr)
-            , offset_(index) {}
-
-        constexpr SparseSetIterator& operator++() noexcept
-        {
-            offset_++;
-            return *this;
-        }
-
-        constexpr SparseSetIterator operator++(int) noexcept
-        {
-            SparseSetIterator it = *this;
-            ++(*this);
-            return it;
-        }
-
-        constexpr SparseSetIterator& operator--() noexcept
-        {
-            offset_--;
-            return *this;
-        }
-
-        constexpr SparseSetIterator operator--(int) noexcept
-        {
-            SparseSetIterator it = *this;
-            --(*this);
-            return it;
-        }
-
-        [[nodiscard]] constexpr ReferenceType operator[](DifferenceType index) noexcept
-        {
-            return (*ptr_)[static_cast<Contaienr::size_type>(index() - index)]
-        }
-
-        [[nodiscard]] constexpr PointerType operator->() noexcept
-        {
-            return &(*ptr_)[index()];
-        }
-
-        [[nodiscard]] constexpr ReferenceType operator*() noexcept
-        {
-            return (*ptr_)[index()];
-        }
-
-        [[nodiscard]] constexpr bool operator==(const SparseSetIterator& other) const noexcept
-        {
-            return offset_ == other.offset_;
-        }
-
-        [[nodiscard]] constexpr bool operator!=(const SparseSetIterator& other) const noexcept
-        {
-            return offset_ != other.offset_;
-        }
-
-        [[nodiscard]] constexpr DifferenceType Index() const noexcept
-        {
-            return offset_ - 1;
-        }
-
-    private:
-        PointerType ptr_;
-        DifferenceType offset_;
-    };
-
     class SparseSet
     {
     private:
@@ -98,7 +18,7 @@ namespace meteor::ecs::internal
         using SparseType = std::vector<PageType*>;
     
     public:
-        using Iterator = SparseSetIterator<PackedType>;
+        using Iterator = PackedType::const_iterator;
 
     private:
         [[nodiscard]] size_t GetPage(Entity entity) const noexcept
@@ -139,6 +59,27 @@ namespace meteor::ecs::internal
             }
             return sparse_[page]->at(pos);
         }
+
+        void DeletePages() noexcept
+        {
+            for (auto& page : sparse_)
+            {
+                delete page;
+            }
+        }
+
+        void RebuildSparse()
+        {
+            DeletePages();
+            sparse_.clear();
+            
+            size_t i = 0;
+            for (Entity e : packed_)
+            {
+                EnsureSparseSlot(e) = i;
+                i++;
+            }
+        }
     
     protected:
         virtual Iterator EmplaceEntity(Entity entity)
@@ -150,11 +91,15 @@ namespace meteor::ecs::internal
                 packed_.push_back(entity);
                 slot = packed_.size() - 1;
             }
-            else 
-            {
-                packed_[slot] = entity;		
-            }
-        };
+  
+            return Iterator(packed_.data() + slot);
+        }
+
+        [[nodiscard]] size_t GetIndex(Entity entity) const
+        {
+            auto* slot = FindSparseSlot(entity);
+            return slot ? *slot : INVALID_INDEX;
+        }
 
     public:
         SparseSet() = default;
@@ -162,23 +107,20 @@ namespace meteor::ecs::internal
         SparseSet(const SparseSet&) = delete;
 
         SparseSet(SparseSet&& other) noexcept
-            : sparse_(std::move(other.sparse_))
-            , packed_(std::move(other.packed_)) {}
+            : packed_(std::move(other.packed_))
+            , sparse_(std::move(other.sparse_)) {}
 
         virtual ~SparseSet()
         {
-            for (auto& page : sparse_)
-            {
-                delete page;
-            }
+            DeletePages();
         }
 
         virtual void Erase(Entity entity)
         {
             auto* slot = FindSparseSlot(entity);
-            if (!slot || packed_.empty()) return;
+            if (!slot || Empty() || *slot == INVALID_INDEX) return;
             
-            size_t last = packed_.size() - 1;
+            size_t last = Size() - 1;
 
             if (*slot != last)
             {
@@ -192,20 +134,65 @@ namespace meteor::ecs::internal
             *slot = INVALID_INDEX;
         }
 
+        void Sort()
+        {
+            std::sort(packed_.begin(), packed_.end(), [&](Entity a, Entity b){
+                return a > b;
+            });
+            RebuildSparse();
+        }
+
+        void Clear() noexcept
+        {
+            DeletePages();
+            packed_.clear();
+            sparse_.clear();
+        }
+
         [[nodiscard]] bool Contains(Entity entity) const
         {
             auto* slot = FindSparseSlot(entity); 
             return slot ? *slot != INVALID_INDEX : false;
         }
 
+        [[nodiscard]] bool Empty() const noexcept
+        {
+            return packed_.empty();
+        }
+
+        [[nodiscard]] size_t Size() const noexcept
+        {
+            return packed_.size();
+        }
+
+        [[nodiscard]] Entity At(size_t index) const
+        {
+            return packed_.at(index);
+        }
+
+        [[nodiscard]] Entity operator[](size_t index) const
+        {
+            return packed_[index];
+        }
+
+        SparseSet& operator=(const SparseSet&) = delete;
+
+        SparseSet& operator=(SparseSet&& other) noexcept
+        {
+            DeletePages();
+            packed_ = std::move(other.packed_);
+            sparse_ = std::move(other.sparse_);
+            return *this;
+        }
+
         [[nodiscard]] Iterator begin() const noexcept
         {
-            return Iterator(packed_.data(), 0);
+            return Iterator(packed_.data());
         }
 
         [[nodiscard]] Iterator end() const noexcept
         {
-            return Iterator(packed_.data(), packed_.size());
+            return Iterator(packed_.data() + packed_.size());
         }
 
     private:
