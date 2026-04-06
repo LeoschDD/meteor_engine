@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/Entity.hpp"
+#include "ecs/Types.hpp"
 
 namespace meteor::ecs
 {

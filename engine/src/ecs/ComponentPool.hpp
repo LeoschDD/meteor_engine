@@ -17,6 +17,8 @@ namespace meteor::ecs::internal
         ComponentPool() = default;
         ComponentPool(ComponentPool&&) = default;
 
+        ~ComponentPool() = default;
+
         template<typename... Args>
         void Emplace(Entity entity, Args&&... args)
         {
@@ -52,18 +54,25 @@ namespace meteor::ecs::internal
 
         void Sort() override
         {
-            std::vector<Entity> packed_copy(SparseSet::begin(), SparseSet::end());
-            PackedComponentsType temp(Size());
+            std::vector<Entity> old_packed(SparseSet::begin(), SparseSet::end());
+            std::vector<bool> visited(old_packed.size(), false);
 
             SparseSet::Sort();
-            for (size_t i = 0; i < packed_copy.size(); i++)
+
+            for (size_t i = 0; i < old_packed.size(); i++)
             {
-                Entity entity = packed_copy[i];
-                size_t index = GetIndex(entity);
-                if (index == INVALID_INDEX) continue;
-                temp[index] = std::move(packed_components_[i]);
+                if (visited[i]) continue;
+
+                size_t j = i;
+                while (GetIndex(old_packed[j]) != i)
+                {
+                    size_t dest = GetIndex(old_packed[j]);
+                    std::swap(packed_components_[j], packed_components_[dest]);
+                    visited[j] = true;
+                    j = dest;
+                }
+                visited[j] = true;
             }
-            packed_components_.swap(temp);
         }
 
         void Clear() noexcept override

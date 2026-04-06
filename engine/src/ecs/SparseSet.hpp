@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/Headers.hpp"
-#include "ecs/Entity.hpp"
+#include "ecs/Types.hpp"
 #include "ecs/Config.hpp"
 
 namespace meteor::ecs::internal
@@ -103,9 +103,7 @@ namespace meteor::ecs::internal
 
     public:
         SparseSet() = default;
-
         SparseSet(const SparseSet&) = delete;
-
         SparseSet(SparseSet&& other) noexcept
             : packed_(std::move(other.packed_))
             , sparse_(std::move(other.sparse_)) {}
