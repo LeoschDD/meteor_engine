@@ -12,5 +12,6 @@ void meteor::Application::Run()
 {
     while (running_)
     {
+        scene_.OnUpdate();
     }
 }

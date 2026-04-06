@@ -149,9 +149,9 @@ namespace meteor::ecs
         }
 
         template<typename... Components>
-        [[nodiscard]] ecs::View<Components...> View() const noexcept
+        [[nodiscard]] ecs::View<Components...> View(Components&... components) const noexcept
         {
-            return ecs::View<Components...>(this);
+            return ecs::View<Components...>(GetPool<Components>()...);
         }
 
         [[nodiscard]] bool Valid(Entity entity) const

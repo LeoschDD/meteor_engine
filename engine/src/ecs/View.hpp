@@ -7,7 +7,10 @@ namespace meteor::ecs
 {
     using namespace internal;
 
-    class Registry;
+    class ViewIterator
+    {
+    
+    };
 
     template<typename... Components>
     requires(sizeof...(Components) != 0)
@@ -17,7 +20,8 @@ namespace meteor::ecs
         using PoolContainer = std::array<std::unique_ptr<SparseSet>, sizeof...(Components)>;
 
     public:
-        
+        using Iterator = ViewIterator;    
+
     private:
         SparseSet* GetSmallestPool()
         {
@@ -41,14 +45,13 @@ namespace meteor::ecs
         template<typename... Fn>
         void Each(Fn&&... fn)
         {
-            for (auto& entity : GetSmallestPool())
+            for (auto& entity : *this)
             {   
-                entity
+                
             }
         }
 
     private:
         PoolContainer pools_;
-        Registry* registry_;
     };
 }
