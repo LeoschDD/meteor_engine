@@ -22,7 +22,7 @@ namespace meteor::ecs::internal
         template<typename... Args>
         void Emplace(Entity entity, Args&&... args)
         {
-            auto it = SparseSet::EmplaceEntity(entity);
+            auto it = Insert(entity);
             size_t index = it - SparseSet::begin();
             
             assert(index <= packed_components_.size());

@@ -23,12 +23,12 @@ namespace meteor::ecs::internal
     private:
         [[nodiscard]] size_t GetPage(Entity entity) const noexcept
         {
-            return static_cast<size_t>(entity / page_size);
+            return static_cast<size_t>(EntityId(entity) / page_size);
         }
 
         [[nodiscard]] size_t GetPos(Entity entity) const noexcept
         {
-            return static_cast<size_t>(entity & (page_size - 1));
+            return static_cast<size_t>(EntityId(entity) & (page_size - 1));
         }
 
         [[nodiscard]] size_t* FindSparseSlot(Entity entity) const 
@@ -82,7 +82,7 @@ namespace meteor::ecs::internal
         }
     
     protected:
-        virtual Iterator EmplaceEntity(Entity entity)
+        Iterator Insert(Entity entity)
         {
             auto& slot = EnsureSparseSlot(entity);
 
@@ -91,7 +91,6 @@ namespace meteor::ecs::internal
                 packed_.push_back(entity);
                 slot = packed_.size() - 1;
             }
-  
             return Iterator(packed_.data() + slot);
         }
 
@@ -196,5 +195,14 @@ namespace meteor::ecs::internal
     private:
         PackedType packed_;
         SparseType sparse_;
+    };
+
+    class EntityStorage : public SparseSet
+    {
+    public:
+        void Emplace(Entity entity)
+        {
+            Insert(entity);
+        }
     };
 }

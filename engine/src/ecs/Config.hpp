@@ -6,4 +6,6 @@ namespace meteor::ecs
 {
     static constexpr Entity INVALID_ENTITY = std::numeric_limits<Entity>::max();
     static constexpr size_t INVALID_INDEX = std::numeric_limits<size_t>::max();
+
+    static constexpr ComponentId MAX_COMPONENTS = std::numeric_limits<ComponentId>::max(); // no limit
 }

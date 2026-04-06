@@ -53,11 +53,9 @@ namespace meteor::ecs
         }
     }
 
-    /////////////////////////////////////////
-
     using ComponentId = uint32_t;
 
-    ComponentId next_component_id = 0;
+    inline ComponentId next_component_id = 0;
 
     template<typename Component>
     [[nodiscard]] inline constexpr ComponentId GetComponentId() noexcept
