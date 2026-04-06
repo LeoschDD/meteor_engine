@@ -81,16 +81,6 @@ namespace meteor::ecs::internal
             packed_components_.clear();
         }
 
-        [[nodiscard]] Iterator begin() const noexcept
-        {
-            return Iterator(packed_components_.data());
-        }
-
-        [[nodiscard]] Iterator end() const noexcept
-        {
-            return Iterator(packed_components_.data() + packed_components_.size());
-        }
-
         [[nodiscard]] Component& Get(Entity entity)
         {
             size_t index = GetIndex(entity);
@@ -125,6 +115,16 @@ namespace meteor::ecs::internal
         {
             size_t index = GetIndex(entity);
             return (index != INVALID_INDEX) ? &packed_components_[index] : nullptr;
+        }
+
+        [[nodiscard]] Iterator begin() const noexcept
+        {
+            return Iterator(packed_components_.data());
+        }
+
+        [[nodiscard]] Iterator end() const noexcept
+        {
+            return Iterator(packed_components_.data() + packed_components_.size());
         }
 
         ComponentPool& operator=(ComponentPool&&) = default;

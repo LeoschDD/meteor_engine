@@ -2,6 +2,7 @@
 
 #include "ecs/ComponentPool.hpp"
 #include "core/Log.hpp"
+#include "ecs/View.hpp"
 
 namespace meteor::ecs
 {
@@ -10,26 +11,43 @@ namespace meteor::ecs
     class World
     {
     private:
-        using PoolContainer = std::unordered_map<uint32_t, std::unique_ptr<SparseSet>>;
+        using PoolContainer = std::unordered_map<ComponentId, std::unique_ptr<SparseSet>>;
         using EntityQueue = std::queue<Entity>;
-    public:
-        World() = default;
 
-        template <typename Component>
-        void RegisterComponent()
+    public:
+        using Iterator = EntityStorage::Iterator;
+
+    private:
+        template<typename Component>
+        ComponentPool<Component>* GetPool()
         {
             ComponentId id = GetComponentId<Component>();
-
-            if (id >= MAX_COMPONENTS)
-            {
-                METEOR_CORE_ERROR("Component limit reached");
-                return;
-            }
             if (!pools_.contains(id)) 
             {
-                pools_[id] = std::make_unique<ComponentPool<Component>>();
+                METEOR_CORE_WARN("Tried to get unregistered component pool");
+                return nullptr; 
             }
+            return static_cast<ComponentPool<Component>*>(pools_.at(id).get());
         }
+
+        template<typename Component>
+        const ComponentPool<Component>* GetPool() const
+        {
+            ComponentId id = GetComponentId<Component>();
+            if (!pools_.contains(id)) 
+            {
+                METEOR_CORE_WARN("Tried to get unregistered component pool");
+                return nullptr; 
+            }
+            return static_cast<const ComponentPool<Component>*>(pools_.at(id).get());
+        }
+
+    public:
+        World() = default;
+        World(const World&) = delete;
+        World& operator=(const World&) = delete;
+        World(World&&) = default;
+        World& operator=(World&&) = default;
 
         Entity Create()
         {
@@ -72,9 +90,104 @@ namespace meteor::ecs
             }
         }
 
+        template <typename Component>
+        void RegisterComponent()
+        {
+            ComponentId id = GetComponentId<Component>();
+
+            if (id >= MAX_COMPONENTS)
+            {
+                METEOR_CORE_ERROR("Component limit reached");
+                return;
+            }
+            if (!pools_.contains(id)) 
+            {
+                pools_[id] = std::make_unique<ComponentPool<Component>>();
+            }
+        }
+
+        template<typename Component, typename... Args>
+        void AddComponent(Entity entity, Args&&... args)
+        {
+            GetPool<Component>()->Emplace(entity, std::forward<Args>(args)...);
+        }
+
+        template<typename Component>
+        void EraseComponent(Entity entity)
+        {
+            GetPool<Component>()->Erase(entity);
+        }
+
+        template<typename Component>
+        [[nodiscard]] Component& GetComponent(Entity entity)
+        {
+            return GetPool<Component>()->Get(entity);
+        }
+
+        template<typename Component>
+        [[nodiscard]] const Component& GetComponent(Entity entity) const
+        {
+            return GetPool<Component>()->Get(entity);
+        }
+
+        template<typename Component>
+        [[nodiscard]] Component* TryGetComponent(Entity entity)
+        {
+            return GetPool<Component>()->TryGet(entity);
+        }
+
+        template<typename Component>
+        [[nodiscard]] const Component* TryGetComponent(Entity entity) const
+        {
+            return GetPool<Component>()->TryGet(entity);
+        }
+
+        template<typename Component>
+        [[nodiscard]] bool HasComponent(Entity entity) const
+        {
+            return GetPool<Component>()->Contains(entity);
+        }
+
+        template<typename... Components>
+        [[nodiscard]] ecs::View<Components...> View() const noexcept
+        {
+            return ecs::View<Components...>(this);
+        }
+
         [[nodiscard]] bool Valid(Entity entity) const
         {
             return entity != INVALID_ENTITY && entities_.Contains(entity);
+        }
+
+        [[nodiscard]] bool Empty() const noexcept
+        {
+            return entities_.Empty();
+        }
+
+        [[nodiscard]] size_t Size() const noexcept
+        {
+            return entities_.Size();
+        }
+
+        void Clear() noexcept
+        {
+            entities_.Clear();
+            for (auto& pool : pools_)
+            {
+                pool.second->Clear();
+            }
+            next_id_ = 0;
+            recycled_ = EntityQueue{};
+        }
+
+        [[nodiscard]] Iterator begin() const noexcept
+        {
+            return entities_.begin();
+        }
+
+        [[nodiscard]] Iterator end() const noexcept
+        {
+            return entities_.end();
         }
 
     private:

@@ -58,7 +58,7 @@ namespace meteor::ecs
     inline ComponentId next_component_id = 0;
 
     template<typename Component>
-    [[nodiscard]] inline constexpr ComponentId GetComponentId() noexcept
+    [[nodiscard]] inline const ComponentId GetComponentId() noexcept
     {
         static ComponentId id = next_component_id++;
         return id;
