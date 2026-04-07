@@ -121,13 +121,17 @@ namespace meteor::ecs
         template<typename Component>
         [[nodiscard]] Component& GetComponent(Entity entity)
         {
-            return GetPool<Component>()->Get(entity);
+            auto* pool = GetPool<Component>();
+            assert(pool && "Component not registered");
+            return pool->Get(entity);
         }
 
         template<typename Component>
         [[nodiscard]] const Component& GetComponent(Entity entity) const
         {
-            return GetPool<Component>()->Get(entity);
+            auto* pool = GetPool<Component>();
+            assert(pool && "Component not registered");
+            return pool->Get(entity);
         }
 
         template<typename Component>
@@ -157,6 +161,7 @@ namespace meteor::ecs
         template<typename... Components>
         [[nodiscard]] ecs::View<Components...> View()
         {
+            assert((GetPool<Components>() && ...) && "One or more components not registered");
             return ecs::View<Components...>(GetPool<Components>()...);
         }
 
