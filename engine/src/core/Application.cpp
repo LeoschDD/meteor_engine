@@ -32,6 +32,18 @@ void meteor::Application::OnEvent(Event& event)
         }
         return false;
     });
+
+    scene_->OnEvent(event);
+}
+
+void meteor::Application::OnUpdate(const float dt)
+{
+    scene_->OnUpdate(dt);
+}
+
+void meteor::Application::OnRender()
+{
+    scene_->OnRender();
 }
 
 meteor::Application::Application()
@@ -56,10 +68,10 @@ void meteor::Application::Run()
         for (auto& event : window_->GetEventQueue())
         {
             OnEvent(*event);
-            scene_->OnEvent(*event);
         }
         window_->ClearEventQueue();
 
-        scene_->OnUpdate(0.1);
+        OnUpdate(0.1);
+        OnRender();
     }
 }

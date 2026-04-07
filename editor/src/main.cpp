@@ -2,6 +2,15 @@
 
 class EditorApp : public meteor::Application
 {
+public:
+    void OnRender() override
+    {
+        meteor::Application::OnRender();
+
+
+    }
+
+private:
 
 };
 

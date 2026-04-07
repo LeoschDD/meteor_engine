@@ -47,3 +47,7 @@ void meteor::Scene::OnUpdate(const float dt)
         module->OnUpdate(dt);
     }
 }
+
+void meteor::Scene::OnRender()
+{
+}

@@ -21,6 +21,7 @@ namespace meteor
 
         void OnEvent(Event& event);
         void OnUpdate(const float dt);
+        void OnRender();
 
         [[nodiscard]] bool Started() const noexcept
         {

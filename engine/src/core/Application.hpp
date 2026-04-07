@@ -10,12 +10,14 @@ namespace meteor
 {
     class Application
     {
-    private:
-        void Init();
-        void Shutdown();
-        
-        void OnEvent(Event& event);
+    protected:
+        virtual void Init();
+        virtual void Shutdown();
 
+        virtual void OnEvent(Event& event);
+        virtual void OnUpdate(const float dt);
+        virtual void OnRender();
+        
     public:
         Application();
         virtual ~Application();

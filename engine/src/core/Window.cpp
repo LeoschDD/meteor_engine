@@ -1,14 +1,14 @@
 #include "Window.hpp"
 
-static bool initialized = false;
+static bool glfw_initialized = false;
 
 void meteor::Window::Init()
 {
-    if (!initialized)
+    if (!glfw_initialized)
     {
         int success = glfwInit();
         METEOR_CORE_ASSERT(success, "Failed to initialize glfw");
-        initialized = true;
+        glfw_initialized = true;
     }
     window_ = glfwCreateWindow(width_, height_, title_.c_str(), nullptr, nullptr);
     METEOR_CORE_INFO("Window created: {0} ({1}, {2})", title_, width_, height_);
