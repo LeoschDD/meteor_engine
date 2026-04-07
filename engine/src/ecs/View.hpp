@@ -6,7 +6,7 @@ namespace meteor::ecs
 {
     using namespace internal;
 
-    template<size_t Include, size_t Exclude>
+    template<size_t ComponentCount>
     class ViewIterator
     {
     private:
@@ -23,11 +23,7 @@ namespace meteor::ecs
         [[nodiscard]] bool Valid() const 
         {
             Entity entity = *current_;
-            for (auto& pool : excluded_pools_)
-            {
-                if (pool->Contains(entity)) return false;
-            }
-            for (auto& pool : included_pools_)
+            for (auto& pool : pools_)
             {
                 if (!pool->Contains(entity)) return false;
             }
@@ -46,12 +42,10 @@ namespace meteor::ecs
     public:
         ViewIterator(SparseSet::Iterator current, 
             SparseSet::Iterator end, 
-            std::array<const SparseSet*, Include> included, 
-            std::array<const SparseSet*, Exclude> excluded)
+            std::array<SparseSet*, ComponentCount> pools) 
             : current_(current)
             , end_(end)
             , pools_(pools)
-            , pool_count_(pool_count)
         {
             StepToNext();
         }
@@ -88,8 +82,7 @@ namespace meteor::ecs
     private:
         IteratorType current_;
         IteratorType end_;
-        std::array<const SparseSet*, Include> included_pools_;
-        std::array<const SparseSet*, Exclude> excluded_pools_;
+        std::array<SparseSet*, ComponentCount> pools_;
     };
 
     template<typename... Components>
@@ -97,18 +90,20 @@ namespace meteor::ecs
     class View
     {
     private:
-        using PoolContainer = std::array<SparseSet*, sizeof...(Components)>;
+        static constexpr size_t component_count  = sizeof...(Components);
+
+        using PoolArray = std::array<SparseSet*, component_count>;
 
     public:
-        using Iterator = ViewIterator<sizeof...(Components), 0>;    
+        using Iterator = ViewIterator<component_count>;    
 
     private:
         void FindSmallestPool()
         {
-            SparseSet* smallest_pool_ = pools_.front();
+            smallest_pool_ = pools_.front();
             for (auto& pool : pools_)
             {
-                if (pool->Size() < smallest->Size())
+                if (pool->Size() < smallest_pool_->Size())
                 {
                     smallest_pool_ = pool;
                 }
@@ -116,45 +111,37 @@ namespace meteor::ecs
         }
 
     public:
-        explicit View(ComponentPool<Components>*... components) 
-            : pools_(components...) 
+        explicit View(ComponentPool<Components>*... pools) 
+            : pools_{pools...} 
         {
             FindSmallestPool();
         }
 
         ~View() = default;
 
-        template<typename... Fn>
-        void Each(Fn&&... fn)
+        template<typename Fn>
+        void Each(Fn&& fn)
         {
-            [this, &fn]<size_t... Index>(std::index_sequence<Index...>){
+            [this, &fn]<size_t... Index>(std::index_sequence<Index...>)
+            {
                 for (auto& entity : *this)
                 {   
-                    fn(entity, static_cast<ComponentPool<Components>*>(pools_[I])->Get(entity)...);
+                    fn(entity, static_cast<ComponentPool<Components>*>(pools_[Index])->Get(entity)...);
                 }
             }(std::index_sequence_for<Components...>{});
         }
 
         [[nodiscard]] Iterator begin() const noexcept
         {
-            return Iterator(
-                smallest_pool_->begin(), 
-                smallest_pool_->end(), 
-                pools_, 
-                std::array<SparseSet*, 0>());
+            return Iterator(smallest_pool_->begin(), smallest_pool_->end(), pools_);
         }
         [[nodiscard]] Iterator end() const noexcept
         {
-            
-            return Iterator(
-                smallest_pool_->end(), 
-                smallest_pool_->end(), 
-                pools_, 
-                std::array<SparseSet*, 0>());
+            return Iterator(smallest_pool_->end(), smallest_pool_->end(), pools_);
         }
 
     private:
-        PoolContainer pools_;
+        PoolArray pools_;
         SparseSet* smallest_pool_;
     };
 }

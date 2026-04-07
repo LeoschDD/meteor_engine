@@ -14,12 +14,12 @@ namespace meteor::ecs::internal
 
         static_assert(page_size && ((page_size & (page_size - 1)) == 0), "Page size must be power of 2");
 
-        using PageType = std::array<size_t, page_size>;
-        using PackedType = std::vector<Entity>;
-        using SparseType = std::vector<PageType*>;
+        using PageArray = std::array<size_t, page_size>;
+        using PackedVec = std::vector<Entity>;
+        using SparseVec = std::vector<PageArray*>;
     
     public:
-        using Iterator = PackedType::const_iterator;
+        using Iterator = PackedVec::const_iterator;
 
     private:
         [[nodiscard]] size_t GetPage(Entity entity) const noexcept
@@ -55,7 +55,7 @@ namespace meteor::ecs::internal
             }
             if (!sparse_[page])
             {
-                sparse_[page] = new PageType();
+                sparse_[page] = new PageArray();
                 sparse_[page]->fill(INVALID_INDEX);
             }
             return sparse_[page]->at(pos);
@@ -203,11 +203,11 @@ namespace meteor::ecs::internal
         }
 
     private:
-        PackedType packed_;
-        SparseType sparse_;
+        PackedVec packed_;
+        SparseVec sparse_;
     };
 
-    class EntityStorage : public SparseSet
+    class EntitySparseSet : public SparseSet
     {
     public:
         void Emplace(Entity entity)

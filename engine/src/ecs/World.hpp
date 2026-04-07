@@ -11,11 +11,11 @@ namespace meteor::ecs
     class World
     {
     private:
-        using PoolContainer = std::unordered_map<ComponentId, std::unique_ptr<SparseSet>>;
+        using PoolMap = std::unordered_map<ComponentId, std::unique_ptr<SparseSet>>;
         using EntityQueue = std::queue<Entity>;
 
     public:
-        using Iterator = EntityStorage::Iterator;
+        using Iterator = EntitySparseSet::Iterator;
 
     private:
         template<typename Component>
@@ -191,8 +191,8 @@ namespace meteor::ecs
         }
 
     private:
-        EntityStorage entities_;
-        PoolContainer pools_;
+        EntitySparseSet entities_;
+        PoolMap pools_;
 
         EntityQueue recycled_;
         Entity next_id_{0};
