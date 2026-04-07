@@ -1,24 +1,39 @@
 #include "scene/Scene.hpp"
 #include "Scene.hpp"
 
-struct Pos
-{
-    int x;
-};
-
-void meteor::Scene::InitWorld()
-{
-    world_.RegisterComponent<Pos>();
-    auto e = world_.Create();
-    world_.AddComponent<Pos>(e);
-}
-
 meteor::Scene::Scene()
+{}
+
+void meteor::Scene::OnStart()
 {
-    InitWorld();
+    started_ = true;
+
+    for (auto& module : modules_)
+    {
+        module->OnStart();
+    }
 }
 
-void meteor::Scene::OnUpdate()
+void meteor::Scene::OnActivate()
 {
+    for (auto& module : modules_)
+    {
+        module->OnActivate();
+    }
+}
 
+void meteor::Scene::OnDeactivate()
+{
+    for (auto& module : modules_)
+    {
+        module->OnDeactivate();
+    }
+}
+
+void meteor::Scene::OnUpdate(const float dt)
+{
+    for (auto& module : modules_)
+    {
+        module->OnUpdate(dt);
+    }
 }

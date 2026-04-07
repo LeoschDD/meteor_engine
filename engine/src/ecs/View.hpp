@@ -1,15 +1,95 @@
 #pragma once
 
 #include "ecs/ComponentPool.hpp"
-#include <array>
 
 namespace meteor::ecs
 {
     using namespace internal;
 
+    template<size_t Include, size_t Exclude>
     class ViewIterator
     {
-    
+    private:
+        using IteratorType = SparseSet::Iterator;
+        using IteratorTraits = std::iterator_traits<IteratorType>;
+
+    public:
+        using value_type = IteratorTraits::value_type;
+        using pointer = IteratorTraits::pointer;
+        using reference = IteratorTraits::reference;
+        using difference_type = IteratorTraits::difference_type;
+
+    private:
+        [[nodiscard]] bool Valid() const 
+        {
+            Entity entity = *current_;
+            for (auto& pool : excluded_pools_)
+            {
+                if (pool->Contains(entity)) return false;
+            }
+            for (auto& pool : included_pools_)
+            {
+                if (!pool->Contains(entity)) return false;
+            }
+            return true;
+        }
+
+        void StepToNext()
+        {
+            while (current_ != end_)
+            {
+                if (Valid()) break;
+                ++current_;
+            }
+        }
+
+    public:
+        ViewIterator(SparseSet::Iterator current, 
+            SparseSet::Iterator end, 
+            std::array<const SparseSet*, Include> included, 
+            std::array<const SparseSet*, Exclude> excluded)
+            : current_(current)
+            , end_(end)
+            , pools_(pools)
+            , pool_count_(pool_count)
+        {
+            StepToNext();
+        }
+
+        ViewIterator& operator++() noexcept
+        {
+            ++current_;
+            StepToNext();
+            return *this;
+        }
+
+        ViewIterator operator++(int) noexcept
+        {
+            auto tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        [[nodiscard]] pointer operator->() const noexcept 
+        {
+            return &*current_;
+        }
+
+        [[nodiscard]] reference operator*() const noexcept 
+        {
+            return *current_;
+        }
+
+        [[nodiscard]] constexpr bool operator==(const ViewIterator& other) const noexcept 
+        {
+            return current_== other.current_;
+        }
+
+    private:
+        IteratorType current_;
+        IteratorType end_;
+        std::array<const SparseSet*, Include> included_pools_;
+        std::array<const SparseSet*, Exclude> excluded_pools_;
     };
 
     template<typename... Components>
@@ -17,28 +97,30 @@ namespace meteor::ecs
     class View
     {
     private:
-        using PoolContainer = std::array<std::unique_ptr<SparseSet>, sizeof...(Components)>;
+        using PoolContainer = std::array<SparseSet*, sizeof...(Components)>;
 
     public:
         using Iterator = ViewIterator;    
 
     private:
-        SparseSet* GetSmallestPool()
+        void FindSmallestPool()
         {
-            SparseSet* smallest = pools_.front()->get();
+            SparseSet* smallest_pool_ = pools_.front();
             for (auto& pool : pools_)
             {
                 if (pool->Size() < smallest->Size())
                 {
-                    smallest = pool->get();
+                    smallest_pool_ = pool;
                 }
             }
-            return smallest;
         }
 
     public:
-        explicit View(Components&... components) 
-            : pools_(&components...) {}
+        explicit View(ComponentPool<Components>*... components) 
+            : pools_(components...) 
+        {
+            FindSmallestPool();
+        }
 
         ~View() = default;
 
@@ -47,11 +129,30 @@ namespace meteor::ecs
         {
             for (auto& entity : *this)
             {   
-                
+                fn();
             }
+        }
+
+        [[nodiscard]] Iterator begin() const noexcept
+        {
+            return Iterator<sizeof...(Components), 0>(
+                smallest_pool_->begin(), 
+                smallest_pool_->end(), 
+                pools_, 
+                std::array<SparseSet*, 0>());
+        }
+        [[nodiscard]] Iterator end() const noexcept
+        {
+            
+            return Iterator<sizeof...(Components), 0>(
+                smallest_pool_->end(), 
+                smallest_pool_->end(), 
+                pools_.data(), 
+                std::array<SparseSet*, 0>());
         }
 
     private:
         PoolContainer pools_;
+        SparseSet* smallest_pool_;
     };
 }
