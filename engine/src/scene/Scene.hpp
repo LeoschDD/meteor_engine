@@ -2,6 +2,7 @@
 
 #include "ecs/World.hpp"
 #include "scene/SceneModule.hpp"
+#include "core/Event.hpp"
 
 namespace meteor
 {
@@ -17,6 +18,8 @@ namespace meteor
         void OnStart();
         void OnActivate();
         void OnDeactivate();
+
+        void OnEvent(Event& event);
         void OnUpdate(const float dt);
 
         [[nodiscard]] bool Started() const noexcept

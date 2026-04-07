@@ -30,6 +30,19 @@ void meteor::Scene::OnDeactivate()
     }
 }
 
+void meteor::Scene::OnEvent(Event& event)
+{
+    auto dispatcher = EventDispatcher(event);
+    dispatcher.Dispatch<KeyPressedEvent>([&](KeyPressedEvent& e){
+        if (e.GetKeyCode() == GLFW_KEY_W)
+        {
+            printf("W");
+            return true;
+        }
+        return false;
+    });
+}
+
 void meteor::Scene::OnUpdate(const float dt)
 {
     for (auto& module : modules_)

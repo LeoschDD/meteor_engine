@@ -18,7 +18,7 @@
         #define METEOR_CORE_ASSERT(x, ...) {if(!x) METEOR_CORE_ERROR("Assertion failed: {}", __VA_ARGS__); __debugbreak();}
     #elifdef METEOR_PLATFORM_LINUX
         #define METEOR_ASSERT(x, ...) {if(!x) METEOR_ERROR("Assertion failed: {}", __VA_ARGS__); assert(false);}
-        #define METEOR_CORE_ASSERT(x, ...) {if(!x) METEOR_CORE_ERROR("Assertion failed: {}", __VA_ARGS__); assert(false);}
+        #define METEOR_CORE_ASSERT(x, ...) {if(!x) {METEOR_CORE_ERROR("Assertion failed: {}", __VA_ARGS__); assert(false);}}
     #endif
 #else
     #define METEOR_ASSERT(x, ...)
