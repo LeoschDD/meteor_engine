@@ -6,40 +6,38 @@
 
 namespace meteor::ecs
 {
-    using namespace internal;
-
     class World
     {
     private:
-        using PoolMap = std::unordered_map<ComponentId, std::unique_ptr<SparseSet>>;
+        using PoolMap = std::unordered_map<ComponentId, std::unique_ptr<internal::SparseSet>>;
         using EntityQueue = std::queue<Entity>;
 
     public:
-        using Iterator = EntitySparseSet::Iterator;
+        using Iterator = internal::EntitySparseSet::Iterator;
 
     private:
         template<typename Component>
-        ComponentPool<Component>* GetPool()
+        internal::ComponentPool<Component>* GetPool()
         {
             ComponentId id = GetComponentId<Component>();
             if (!pools_.contains(id)) 
             {
-                METEOR_CORE_WARN("Tried to get unregistered component pool");
+                METEOR_CORE_ERROR("Tried to get unregistered component pool");
                 return nullptr; 
             }
-            return static_cast<ComponentPool<Component>*>(pools_.at(id).get());
+            return static_cast<internal::ComponentPool<Component>*>(pools_.at(id).get());
         }
 
         template<typename Component>
-        const ComponentPool<Component>* GetPool() const
+        const internal::ComponentPool<Component>* GetPool() const
         {
             ComponentId id = GetComponentId<Component>();
             if (!pools_.contains(id)) 
             {
-                METEOR_CORE_WARN("Tried to get unregistered component pool");
+                METEOR_CORE_ERROR("Tried to get unregistered component pool");
                 return nullptr; 
             }
-            return static_cast<const ComponentPool<Component>*>(pools_.at(id).get());
+            return static_cast<const internal::ComponentPool<Component>*>(pools_.at(id).get());
         }
 
     public:
@@ -60,7 +58,7 @@ namespace meteor::ecs
             }
             else if (next_id_ < MAX_ENTITY_ID)
             {
-                entity = CreateEntity(next_id_++, 0);
+                entity = internal::CreateEntity(next_id_++, 0);
             }
             else
             {
@@ -86,7 +84,7 @@ namespace meteor::ecs
                     METEOR_CORE_WARN("Entity {} version wrapped to 0", EntityId(entity));
                     next_version = 0;
                 }
-                recycled_.push(CreateEntity(EntityId(entity), next_version));
+                recycled_.push(internal::CreateEntity(EntityId(entity), next_version));
             }
         }
 
@@ -102,20 +100,22 @@ namespace meteor::ecs
             }
             if (!pools_.contains(id)) 
             {
-                pools_[id] = std::make_unique<ComponentPool<Component>>();
+                pools_[id] = std::make_unique<internal::ComponentPool<Component>>();
             }
         }
 
         template<typename Component, typename... Args>
         void AddComponent(Entity entity, Args&&... args)
         {
-            GetPool<Component>()->Emplace(entity, std::forward<Args>(args)...);
+            auto* pool = GetPool<Component>();
+            if (pool) pool->Emplace(entity, std::forward<Args>(args)...);
         }
 
         template<typename Component>
         void EraseComponent(Entity entity)
         {
-            GetPool<Component>()->Erase(entity);
+            auto* pool = GetPool<Component>();
+            if (pool) pool->Erase(entity);
         }
 
         template<typename Component>
@@ -133,19 +133,25 @@ namespace meteor::ecs
         template<typename Component>
         [[nodiscard]] Component* TryGetComponent(Entity entity)
         {
-            return GetPool<Component>()->TryGet(entity);
+            auto* pool = GetPool<Component>();
+            if (pool) return pool->TryGet(entity);
+            return nullptr;
         }
 
         template<typename Component>
         [[nodiscard]] const Component* TryGetComponent(Entity entity) const
         {
-            return GetPool<Component>()->TryGet(entity);
+            auto* pool = GetPool<Component>();
+            if (pool) return pool->TryGet(entity);
+            return nullptr;
         }
 
         template<typename Component>
         [[nodiscard]] bool HasComponent(Entity entity) const
         {
-            return GetPool<Component>()->Contains(entity);
+            auto* pool = GetPool<Component>();
+            if (pool) return pool->Contains(entity);
+            return false;
         }
 
         template<typename... Components>
@@ -191,7 +197,7 @@ namespace meteor::ecs
         }
 
     private:
-        EntitySparseSet entities_;
+        internal::EntitySparseSet entities_;
         PoolMap pools_;
 
         EntityQueue recycled_;

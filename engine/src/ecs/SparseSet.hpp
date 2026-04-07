@@ -143,7 +143,7 @@ namespace meteor::ecs::internal
         virtual void Sort()
         {
             std::sort(packed_.begin(), packed_.end(), [&](Entity a, Entity b){
-                return a > b;
+                return a < b;
             });
             RebuildSparse();
         }

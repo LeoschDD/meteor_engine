@@ -4,13 +4,11 @@
 
 namespace meteor::ecs
 {
-    using namespace internal;
-
     template<size_t ComponentCount>
     class ViewIterator
     {
     private:
-        using IteratorType = SparseSet::Iterator;
+        using IteratorType = internal::SparseSet::Iterator;
         using IteratorTraits = std::iterator_traits<IteratorType>;
 
     public:
@@ -40,9 +38,9 @@ namespace meteor::ecs
         }
 
     public:
-        ViewIterator(SparseSet::Iterator current, 
-            SparseSet::Iterator end, 
-            std::array<SparseSet*, ComponentCount> pools) 
+        ViewIterator(IteratorType current, 
+            IteratorType end, 
+            std::array<internal::SparseSet*, ComponentCount> pools) 
             : current_(current)
             , end_(end)
             , pools_(pools)
@@ -76,13 +74,13 @@ namespace meteor::ecs
 
         [[nodiscard]] constexpr bool operator==(const ViewIterator& other) const noexcept 
         {
-            return current_== other.current_;
+            return current_ == other.current_;
         }
 
     private:
         IteratorType current_;
         IteratorType end_;
-        std::array<SparseSet*, ComponentCount> pools_;
+        std::array<internal::SparseSet*, ComponentCount> pools_;
     };
 
     template<typename... Components>
@@ -92,7 +90,7 @@ namespace meteor::ecs
     private:
         static constexpr size_t component_count  = sizeof...(Components);
 
-        using PoolArray = std::array<SparseSet*, component_count>;
+        using PoolArray = std::array<internal::SparseSet*, component_count>;
 
     public:
         using Iterator = ViewIterator<component_count>;    
@@ -111,7 +109,7 @@ namespace meteor::ecs
         }
 
     public:
-        explicit View(ComponentPool<Components>*... pools) 
+        explicit View(internal::ComponentPool<Components>*... pools) 
             : pools_{pools...} 
         {
             FindSmallestPool();
@@ -126,7 +124,7 @@ namespace meteor::ecs
             {
                 for (auto& entity : *this)
                 {   
-                    fn(entity, static_cast<ComponentPool<Components>*>(pools_[Index])->Get(entity)...);
+                    fn(entity, static_cast<internal::ComponentPool<Components>*>(pools_[Index])->Get(entity)...);
                 }
             }(std::index_sequence_for<Components...>{});
         }
@@ -142,6 +140,6 @@ namespace meteor::ecs
 
     private:
         PoolArray pools_;
-        SparseSet* smallest_pool_;
+        internal::SparseSet* smallest_pool_;
     };
 }
