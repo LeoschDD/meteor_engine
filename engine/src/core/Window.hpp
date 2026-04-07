@@ -2,24 +2,40 @@
 
 #include "core/Headers.hpp"
 #include "core/Event.hpp"
+#include "core/Core.hpp"
+#include "core/Log.hpp"
 
 namespace meteor
 {
-    inline bool glfw_initialized = false;
-
     class Window
     {
+    private:
+        using EventQueue = std::vector<std::unique_ptr<Event>>;
+    private:
+        void Init();
+        void Shutdown();
+        void SetEventCallbacks();
+
     public:
-        virtual ~Window() = default;
+        Window(int width, int height, const std::string& title);
+        ~Window();
+        
+        void OnUpdate();
 
-        virtual void OnUpdate() = 0;
+        void SetVSync(bool enabled);
+        [[nodiscard]] bool GetVSync() const noexcept {return vsync_;}
 
-        [[nodiscard]] virtual uint32_t GetWidth() const noexcept = 0;
-        [[nodiscard]] virtual uint32_t GetHeight() const noexcept = 0;
+        [[nodiscard]] uint32_t GetWidth() const noexcept {return width_;}
+        [[nodiscard]] uint32_t GetHeight() const noexcept {return height_;}
 
-        virtual void SetVSync(bool enabled) = 0;
-        [[nodiscard]] virtual bool GetVSync() const noexcept = 0;
+        void ClearEventQueue() noexcept {event_queue_.clear();}
+        [[nodiscard]] const EventQueue& GetEventQueue() const noexcept {return event_queue_;}
 
-        [[nodiscard]] virtual std::vector<std::unique_ptr<Event>>& GetEvents() noexcept = 0;
+    private:
+        GLFWwindow* window_;
+        EventQueue event_queue_;
+        bool vsync_;
+        uint32_t width_, height_;
+        std::string title_;
     };
 }

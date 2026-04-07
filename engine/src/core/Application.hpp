@@ -5,12 +5,17 @@
 #include "scene/Scene.hpp"
 #include "core/Core.hpp"
 #include "core/Window.hpp"
-#include "platform/linux/LinuxWindow.hpp"
 
 namespace meteor
 {
     class Application
     {
+    private:
+        void Init();
+        void Shutdown();
+        
+        void OnEvent(Event& event);
+
     public:
         Application();
         virtual ~Application();
@@ -19,7 +24,8 @@ namespace meteor
 
     private:
         bool running_{false};
+
+        std::unique_ptr<Scene> scene_;
         std::unique_ptr<Window> window_;
-        Scene scene_;
     };
 }

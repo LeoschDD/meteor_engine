@@ -32,24 +32,24 @@ namespace meteor
     class KeyEvent : public Event
     {
     protected:
-        KeyEvent(const uint32_t key_code)
+        KeyEvent(const int key_code)
             : key_code_(key_code)
         {}
     
     public:
-        uint32_t GetKeyCode() const noexcept
+        int GetKeyCode() const noexcept
         {
             return key_code_;
         }
     
     private:
-        const uint32_t key_code_;
+        const int key_code_;
     };
     
     class KeyPressedEvent : public KeyEvent
     {
     public:
-        KeyPressedEvent(const uint32_t key_code, bool repeat)
+        KeyPressedEvent(const int key_code, bool repeat)
             : KeyEvent(key_code)
             , repeat_(repeat)
         {}
@@ -61,7 +61,7 @@ namespace meteor
     class KeyReleasedEvent : public KeyEvent
     {
     public:
-        KeyReleasedEvent(const uint32_t key_code)
+        KeyReleasedEvent(const int key_code)
             : KeyEvent(key_code)
         {}
     };
@@ -89,24 +89,6 @@ namespace meteor
 		WindowCloseEvent() = default;
 	};
 
-	class AppTickEvent : public Event
-	{
-	public:
-		AppTickEvent() = default;
-	};
-
-	class AppUpdateEvent : public Event
-	{
-	public:
-		AppUpdateEvent() = default;
-	};
-
-	class AppRenderEvent : public Event
-	{
-	public:
-		AppRenderEvent() = default;
-	};
-
     ////////////////////////////////////////////////////
     // Mouse events ////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -130,8 +112,8 @@ namespace meteor
 		MouseScrolledEvent(const float x, const float y)
 			: offset_x_(x), offset_y_(y) {}
 
-		[[nodiscard]] float GetOffsetX() const noexcept { return offset_x_; }
-		[[nodiscard]] float GetOffsetY() const noexcept { return offset_y_; }
+		[[nodiscard]] float GetOffsetX() const noexcept {return offset_x_;}
+		[[nodiscard]] float GetOffsetY() const noexcept {return offset_y_;}
 
 	private:
 		float offset_x_, offset_y_;
@@ -140,27 +122,27 @@ namespace meteor
 	class MouseButtonEvent : public Event
 	{
 	public:
-		uint32_t GetMouseButton() const { return button_; }
+		int GetMouseButton() const {return button_;}
 
 	protected:
-		MouseButtonEvent(const uint32_t button)
+		MouseButtonEvent(const int button)
 			: button_(button) {}
 
     private:
-		uint32_t button_;
+		int button_;
 	};
 
 	class MouseButtonPressedEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonPressedEvent(const uint32_t button)
+		MouseButtonPressedEvent(const int button)
 			: MouseButtonEvent(button) {}
 	};
 
 	class MouseButtonReleasedEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonReleasedEvent(const uint32_t button)
+		MouseButtonReleasedEvent(const int button)
 			: MouseButtonEvent(button) {}
 	};
 

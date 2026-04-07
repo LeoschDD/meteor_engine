@@ -1,9 +1,5 @@
 #pragma once
 
-#include <signal.h>
-#include <sys/syscall.h>
-#include <unistd.h>
-
 #define METEOR_ENABLE_ASSERTS
 
 #ifdef __linux__
