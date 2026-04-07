@@ -100,7 +100,7 @@ namespace meteor::ecs
         using PoolContainer = std::array<SparseSet*, sizeof...(Components)>;
 
     public:
-        using Iterator = ViewIterator;    
+        using Iterator = ViewIterator<sizeof...(Components), 0>;    
 
     private:
         void FindSmallestPool()
@@ -127,15 +127,17 @@ namespace meteor::ecs
         template<typename... Fn>
         void Each(Fn&&... fn)
         {
-            for (auto& entity : *this)
-            {   
-                fn();
-            }
+            [this, &fn]<size_t... Index>(std::index_sequence<Index...>){
+                for (auto& entity : *this)
+                {   
+                    fn(entity, static_cast<ComponentPool<Components>*>(pools_[I])->Get(entity)...);
+                }
+            }(std::index_sequence_for<Components...>{});
         }
 
         [[nodiscard]] Iterator begin() const noexcept
         {
-            return Iterator<sizeof...(Components), 0>(
+            return Iterator(
                 smallest_pool_->begin(), 
                 smallest_pool_->end(), 
                 pools_, 
@@ -144,10 +146,10 @@ namespace meteor::ecs
         [[nodiscard]] Iterator end() const noexcept
         {
             
-            return Iterator<sizeof...(Components), 0>(
+            return Iterator(
                 smallest_pool_->end(), 
                 smallest_pool_->end(), 
-                pools_.data(), 
+                pools_, 
                 std::array<SparseSet*, 0>());
         }
 
