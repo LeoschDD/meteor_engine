@@ -33,13 +33,10 @@ void meteor::Scene::OnDeactivate()
 void meteor::Scene::OnEvent(Event& event)
 {
     auto dispatcher = EventDispatcher(event);
-    dispatcher.Dispatch<KeyPressedEvent>([&](KeyPressedEvent& e){
-        if (e.GetKeyCode() == GLFW_KEY_W)
-        {
-            printf("W");
-            return true;
-        }
-        return false;
+    dispatcher.Dispatch<WindowResizeEvent>([&](WindowResizeEvent& e)
+    {
+        METEOR_CORE_INFO("Resize height: {0}", e.GetHeight());
+        return true;
     });
 }
 

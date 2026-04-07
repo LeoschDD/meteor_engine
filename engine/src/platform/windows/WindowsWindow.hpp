@@ -24,7 +24,7 @@ namespace meteor
         virtual void SetVSync(bool enabled) override;
         [[nodiscard]] virtual bool GetVSync() const noexcept override {return vsync_;}
 
-        virtual void SetEventCallback(const std::function<void(Event&)>& callback) override;
+        [[nodiscard]] std::vector<std::unique_ptr<Event>>& GetEvents() noexcept override {return events_;}
     
     private:
         GLFWwindow* window_{nullptr};
@@ -33,5 +33,7 @@ namespace meteor
         uint32_t height_;
         std::string title_;
         bool vsync_{false};
+
+        std::vector<std::unique_ptr<Event>> events_;
     };
 }

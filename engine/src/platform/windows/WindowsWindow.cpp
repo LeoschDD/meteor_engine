@@ -53,7 +53,3 @@ void meteor::WindowsWindow::SetVSync(bool enabled)
     }
     vsync_ = enabled;
 }
-
-void meteor::WindowsWindow::SetEventCallback(const std::function<void(Event &)> &callback)
-{
-}

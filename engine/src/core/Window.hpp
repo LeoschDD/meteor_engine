@@ -5,7 +5,7 @@
 
 namespace meteor
 {
-    static bool glfw_initialized{false};
+    inline bool glfw_initialized = false;
 
     class Window
     {
@@ -20,6 +20,6 @@ namespace meteor
         virtual void SetVSync(bool enabled) = 0;
         [[nodiscard]] virtual bool GetVSync() const noexcept = 0;
 
-        virtual void SetEventCallback(const std::function<void(Event&)>& callback) = 0;
+        [[nodiscard]] virtual std::vector<std::unique_ptr<Event>>& GetEvents() noexcept = 0;
     };
 }

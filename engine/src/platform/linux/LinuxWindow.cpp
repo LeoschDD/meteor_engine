@@ -14,6 +14,17 @@ void meteor::LinuxWindow::Init()
     glfwMakeContextCurrent(window_);
     glfwSetWindowUserPointer(window_, this);
     SetVSync(true);
+
+    glfwSetWindowSizeCallback(window_, [](GLFWwindow* window, int width, int height)
+    {
+        auto* self = static_cast<LinuxWindow*>(glfwGetWindowUserPointer(window));
+        self->events_.push_back(std::make_unique<WindowResizeEvent>(width, height));
+    });
+    glfwSetWindowCloseCallback(window_, [](GLFWwindow* window)
+    {
+        auto* self = static_cast<LinuxWindow*>(glfwGetWindowUserPointer(window));
+        self->events_.push_back(std::make_unique<WindowCloseEvent>());
+    });
 }
 
 void meteor::LinuxWindow::Shutdown()
@@ -54,6 +65,3 @@ void meteor::LinuxWindow::SetVSync(bool enabled)
     vsync_ = enabled;
 }
 
-void meteor::LinuxWindow::SetEventCallback(const std::function<void(Event &)> &callback)
-{
-}
