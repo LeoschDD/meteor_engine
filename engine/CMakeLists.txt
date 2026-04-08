@@ -28,6 +28,7 @@ target_link_libraries(meteor_engine
     PUBLIC
         glfw
         glad
+        glm
         imgui
         spdlog
         nlohmann_json::nlohmann_json

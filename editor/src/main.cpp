@@ -3,24 +3,32 @@
 class EditorApp : public meteor::Application
 {
 public:
-    void Init() override
-    {
-        meteor::Application::Init();
-
-        IMGUI_CHECKVERSION();
-
-        ImGui::CreateContext();
-        ImGui::StyleColorsDark();
-        
-        ImGuiIO& io = ImGui::GetIO();
-        io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
-        io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
-
-    }
-
     void OnRender() override
     {
         meteor::Application::OnRender();
+        OnImGui();
+    }
+
+    void OnImGui()
+    {
+        StartImGui();
+
+        ImGui::ShowDemoWindow();
+
+        EndImGui();
+    }
+
+    void StartImGui()
+    {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+    }
+
+    void EndImGui()
+    {
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
 private:

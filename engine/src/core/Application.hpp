@@ -14,6 +14,9 @@ namespace meteor
         virtual void Init();
         virtual void Shutdown();
 
+        void InitImGui();
+        void ShutdownImGui();
+
         virtual void OnEvent(Event& event);
         virtual void OnUpdate(const float dt);
         virtual void OnRender();

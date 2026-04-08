@@ -31,6 +31,8 @@ namespace meteor
         void ClearEventQueue() noexcept {event_queue_.clear();}
         [[nodiscard]] const EventQueue& GetEventQueue() const noexcept {return event_queue_;}
 
+        [[nodiscard]] GLFWwindow* GetNative() noexcept {return window_;}
+
     private:
         GLFWwindow* window_;
         EventQueue event_queue_;
