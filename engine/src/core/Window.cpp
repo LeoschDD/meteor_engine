@@ -1,4 +1,4 @@
-#include "Window.hpp"
+#include "core/Window.hpp"
 
 static bool glfw_initialized = false;
 

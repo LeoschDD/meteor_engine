@@ -1,5 +1,4 @@
 #include "scene/Scene.hpp"
-#include "Scene.hpp"
 
 meteor::Scene::Scene()
 {}
