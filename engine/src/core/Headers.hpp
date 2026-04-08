@@ -19,6 +19,7 @@
 #include <unordered_set>
 #include <cassert>
 #include <fstream>
+#include <random>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

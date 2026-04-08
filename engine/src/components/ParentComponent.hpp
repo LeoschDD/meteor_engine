@@ -1,11 +1,11 @@
 #pragma once
 
-#include "core/Headers.hpp"
+#include "core/UUID.hpp"
 
 namespace meteor
 {
     struct ParentComponent
     {
-        uint64_t parent_;
+        UUID parent;
     };
 }

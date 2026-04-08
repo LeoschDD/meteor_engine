@@ -9,16 +9,19 @@ nlohmann::ordered_json meteor::SceneSerializer::SerializeEntity(ecs::Entity enti
 
     if (auto* uuid = world.TryGetComponent<UUIDComponent>(entity))
     {
-        json["uuid"] = uuid->uuid_;
+        json["uuid"] = uuid->uuid.GetUUID();
     } 
     if (auto* parent = world.TryGetComponent<ParentComponent>(entity))
     {
-        json["parent"] = parent->parent_;
+        json["parent"] = parent->parent.GetUUID();
     }
     if (auto* children = world.TryGetComponent<ChildrenComponent>(entity))
     {
-        json["children"] = children->children_;
-        
+        std::vector<uint64_t> temp(children->children.size());
+        for (auto& uuid : children->children)
+        {
+            json["children"].push_back(uuid.GetUUID());
+        }
     }   
     return json;
 }
@@ -37,7 +40,12 @@ void meteor::SceneSerializer::DeserializeEntity(nlohmann::ordered_json& json, ec
     }
     if (json.contains("children"))
     {
-        world.AddComponent<ChildrenComponent>(entity, json["children"].get<std::vector<uint64_t>>());
+        std::vector<UUID> temp(json["children"].size());
+        for (auto& uuid : json["children"])
+        {
+            temp.emplace_back(uuid);
+        }
+        world.AddComponent<ChildrenComponent>(entity, temp);
     }
 }
 

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "core/Headers.hpp"
+#include "core/UUID.hpp"
 
 namespace meteor
 {
     struct ChildrenComponent
     {
-        std::vector<uint64_t> children_;
+        std::vector<UUID> children;
     };
 }
