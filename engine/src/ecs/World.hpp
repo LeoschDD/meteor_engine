@@ -16,28 +16,48 @@ namespace meteor::ecs
         using Iterator = internal::EntitySparseSet::Iterator;
 
     private:
+        template <typename Component>
+        void RegisterComponent()
+        {
+            ComponentId id = GetComponentId<Component>();
+
+            if (id >= MAX_COMPONENTS)
+            {
+                METEOR_CORE_ERROR("Component limit reached");
+                return;
+            }
+            if (!pools_.contains(id)) 
+            {
+                pools_[id] = std::make_unique<internal::ComponentPool<Component>>();
+            }
+        }
+
         template<typename Component>
-        internal::ComponentPool<Component>* GetPool()
+        [[nodiscard]] internal::ComponentPool<Component>* EnsurePool()
         {
             ComponentId id = GetComponentId<Component>();
             if (!pools_.contains(id)) 
             {
-                METEOR_CORE_ERROR("Tried to get unregistered component pool");
-                return nullptr; 
+                RegisterComponent<Component>();
+            }
+            if (!pools_.contains(id)) 
+            {
+                METEOR_CORE_ERROR("Component registration failed");
+                return nullptr;
             }
             return static_cast<internal::ComponentPool<Component>*>(pools_.at(id).get());
         }
 
         template<typename Component>
-        const internal::ComponentPool<Component>* GetPool() const
+        [[nodiscard]] internal::ComponentPool<Component>* GetPool()
         {
             ComponentId id = GetComponentId<Component>();
             if (!pools_.contains(id)) 
             {
-                METEOR_CORE_ERROR("Tried to get unregistered component pool");
-                return nullptr; 
+                METEOR_CORE_WARN("Component not registered");
+                return nullptr;
             }
-            return static_cast<const internal::ComponentPool<Component>*>(pools_.at(id).get());
+            return static_cast<internal::ComponentPool<Component>*>(pools_.at(id).get());
         }
 
     public:
@@ -88,26 +108,10 @@ namespace meteor::ecs
             }
         }
 
-        template <typename Component>
-        void RegisterComponent()
-        {
-            ComponentId id = GetComponentId<Component>();
-
-            if (id >= MAX_COMPONENTS)
-            {
-                METEOR_CORE_ERROR("Component limit reached");
-                return;
-            }
-            if (!pools_.contains(id)) 
-            {
-                pools_[id] = std::make_unique<internal::ComponentPool<Component>>();
-            }
-        }
-
         template<typename Component, typename... Args>
         void AddComponent(Entity entity, Args&&... args)
         {
-            auto* pool = GetPool<Component>();
+            auto* pool = EnsurePool<Component>();
             if (pool) pool->Emplace(entity, std::forward<Args>(args)...);
         }
 
@@ -121,16 +125,8 @@ namespace meteor::ecs
         template<typename Component>
         [[nodiscard]] Component& GetComponent(Entity entity)
         {
-            auto* pool = GetPool<Component>();
-            assert(pool && "Component not registered");
-            return pool->Get(entity);
-        }
-
-        template<typename Component>
-        [[nodiscard]] const Component& GetComponent(Entity entity) const
-        {
-            auto* pool = GetPool<Component>();
-            assert(pool && "Component not registered");
+            auto* pool = EnsurePool<Component>();
+            METEOR_ASSERT(pool, "Component not registered");
             return pool->Get(entity);
         }
 
@@ -143,15 +139,7 @@ namespace meteor::ecs
         }
 
         template<typename Component>
-        [[nodiscard]] const Component* TryGetComponent(Entity entity) const
-        {
-            auto* pool = GetPool<Component>();
-            if (pool) return pool->TryGet(entity);
-            return nullptr;
-        }
-
-        template<typename Component>
-        [[nodiscard]] bool HasComponent(Entity entity) const
+        [[nodiscard]] bool HasComponent(Entity entity)
         {
             auto* pool = GetPool<Component>();
             if (pool) return pool->Contains(entity);
@@ -161,8 +149,7 @@ namespace meteor::ecs
         template<typename... Components>
         [[nodiscard]] ecs::View<Components...> View()
         {
-            assert((GetPool<Components>() && ...) && "One or more components not registered");
-            return ecs::View<Components...>(GetPool<Components>()...);
+            return ecs::View<Components...>(EnsurePool<Components>()...);
         }
 
         [[nodiscard]] bool Valid(Entity entity) const

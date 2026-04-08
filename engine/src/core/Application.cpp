@@ -2,7 +2,7 @@
 
 void meteor::Application::Init()
 {
-    scene_ = std::make_unique<Scene>();
+    scene_ = std::make_unique<Scene>("Scene1");
     scene_->OnStart();
     scene_->OnActivate();
     window_ = std::make_unique<Window>(1920, 1080, "Meteor Engine");

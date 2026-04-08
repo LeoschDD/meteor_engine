@@ -1,5 +1,4 @@
 #include "core/UUID.hpp"
-#include "UUID.hpp"
 
 static std::random_device random_device;
 static std::mt19937_64 engine(random_device());

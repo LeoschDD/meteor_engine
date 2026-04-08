@@ -1,7 +1,10 @@
 #include "scene/Scene.hpp"
-#include "Scene.hpp"
+#include "components/ChildrenComponent.hpp"
+#include "components/ParentComponent.hpp"
+#include "components/UUIDComponent.hpp"
 
-meteor::Scene::Scene()
+meteor::Scene::Scene(const std::string& name)
+    : name_(name)
 {}
 
 meteor::Scene::Scene(const std::string& name, ecs::World world)
@@ -42,5 +45,5 @@ void meteor::Scene::OnUpdate(const float dt)
 
 void meteor::Scene::OnRender()
 {
-
+    
 }

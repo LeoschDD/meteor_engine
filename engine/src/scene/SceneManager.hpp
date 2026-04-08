@@ -1,6 +1,7 @@
 #pragma once
 
 #include "scene/Scene.hpp"
+#include "serialization/WorldSerializer.hpp"
 
 namespace meteor
 {
@@ -10,7 +11,7 @@ namespace meteor
         using SceneMap = std::unordered_map<std::string, std::unique_ptr<Scene>>;
     
     public:
-        SceneManager(const std::filesystem::path& scene_folder)
+        explicit SceneManager(const std::filesystem::path& scene_folder)
             : scene_folder_(scene_folder)
         {}
 
@@ -25,6 +26,7 @@ namespace meteor
 
     private:
         std::filesystem::path scene_folder_;
+        SceneSerializer scene_serializer_;
         SceneMap scenes_;
     };
 }

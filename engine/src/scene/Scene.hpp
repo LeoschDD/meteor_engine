@@ -8,7 +8,7 @@ namespace meteor
     class Scene
     {
     public:
-        Scene();
+        explicit Scene(const std::string& name);
         Scene(const std::string& name, ecs::World world);
 
         ~Scene() = default;
@@ -20,7 +20,7 @@ namespace meteor
         void OnEvent(Event& event);
         void OnUpdate(const float dt);
         void OnRender();
-
+        
         [[nodiscard]] const std::string& GetName() const noexcept {return name_;}
         [[nodiscard]] ecs::World& GetWorld() noexcept {return world_;}
 

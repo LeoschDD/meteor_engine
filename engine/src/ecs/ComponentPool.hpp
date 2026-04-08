@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ecs/SparseSet.hpp"
+#include "core/Core.hpp"
 
 namespace meteor::ecs::internal
 {
@@ -25,7 +26,7 @@ namespace meteor::ecs::internal
             auto it = Insert(entity);
             size_t index = it - SparseSet::begin();
             
-            assert(index <= packed_components_.size() && "Packed components out of sync with sparse set");
+            METEOR_ASSERT(index <= packed_components_.size(), "Packed components out of sync with sparse set");
 
             if (packed_components_.size() == index)
             {
@@ -93,25 +94,7 @@ namespace meteor::ecs::internal
             return packed_components_[index];
         }
 
-        [[nodiscard]] const Component& Get(Entity entity) const
-        {
-            size_t index = GetIndex(entity);
-            if (index == INVALID_INDEX)
-            {
-                METEOR_CORE_ERROR("Entity {} not found in component pool", EntityId(entity));
-                static const Component fallback{};
-                return fallback;
-            }
-            return packed_components_[index];
-        }
-
         [[nodiscard]] Component* TryGet(Entity entity)
-        {
-            size_t index = GetIndex(entity);
-            return (index != INVALID_INDEX) ? &packed_components_[index] : nullptr;
-        }
-
-        [[nodiscard]] const Component* TryGet(Entity entity) const
         {
             size_t index = GetIndex(entity);
             return (index != INVALID_INDEX) ? &packed_components_[index] : nullptr;
