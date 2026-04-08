@@ -4,6 +4,8 @@
 void meteor::Application::Init()
 {
     scene_ = std::make_unique<Scene>();
+    scene_->OnStart();
+    scene_->OnActivate();
     window_ = std::make_unique<Window>(1920, 1080, "Engie");
 
     int success = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
@@ -12,6 +14,7 @@ void meteor::Application::Init()
 
 void meteor::Application::Shutdown()
 {
+    scene_->OnDeactivate();
 }
 
 void meteor::Application::OnEvent(Event& event)

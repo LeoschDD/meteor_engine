@@ -6,28 +6,18 @@ meteor::Scene::Scene()
 
 void meteor::Scene::OnStart()
 {
+    if (started_) return;
     started_ = true;
-
-    for (auto& module : modules_)
-    {
-        module->OnStart();
-    }
 }
 
 void meteor::Scene::OnActivate()
 {
-    for (auto& module : modules_)
-    {
-        module->OnActivate();
-    }
+
 }
 
 void meteor::Scene::OnDeactivate()
 {
-    for (auto& module : modules_)
-    {
-        module->OnDeactivate();
-    }
+
 }
 
 void meteor::Scene::OnEvent(Event& event)
@@ -42,10 +32,7 @@ void meteor::Scene::OnEvent(Event& event)
 
 void meteor::Scene::OnUpdate(const float dt)
 {
-    for (auto& module : modules_)
-    {
-        module->OnUpdate(dt);
-    }
+
 }
 
 void meteor::Scene::OnRender()
