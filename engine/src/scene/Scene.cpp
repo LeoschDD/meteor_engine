@@ -1,6 +1,12 @@
 #include "scene/Scene.hpp"
+#include "Scene.hpp"
 
 meteor::Scene::Scene()
+{}
+
+meteor::Scene::Scene(const std::string& name, ecs::World world)
+    : name_(name)
+    , world_(std::move(world))
 {}
 
 void meteor::Scene::OnStart()
@@ -36,4 +42,5 @@ void meteor::Scene::OnUpdate(const float dt)
 
 void meteor::Scene::OnRender()
 {
+
 }

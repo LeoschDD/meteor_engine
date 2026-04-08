@@ -32,5 +32,7 @@ namespace meteor
 
         std::unique_ptr<Scene> scene_;
         std::unique_ptr<Window> window_;
+
+        uint32_t vertex_array_, vertex_buffer_, index_buffer_;
     };
 }

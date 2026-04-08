@@ -11,21 +11,21 @@ public:
 
     void OnImGui()
     {
-        StartImGui();
+        ImGuiBegin();
 
         ImGui::ShowDemoWindow();
 
-        EndImGui();
+        ImGuiEnd();
     }
 
-    void StartImGui()
+    void ImGuiBegin()
     {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
     }
 
-    void EndImGui()
+    void ImGuiEnd()
     {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
