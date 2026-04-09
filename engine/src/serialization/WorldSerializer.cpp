@@ -74,7 +74,7 @@ std::unique_ptr<meteor::Scene> meteor::SceneSerializer::Deserialize(const std::f
     std::ifstream file(path);
     if (!file.is_open())
     {
-        METEOR_CORE_ERROR("Could not open file: {}", path.string());
+        METEOR_CORE_WARN("Could not open file: {}", path.string());
         return nullptr;
     }
 
@@ -88,7 +88,7 @@ std::unique_ptr<meteor::Scene> meteor::SceneSerializer::Deserialize(const std::f
         METEOR_CORE_ERROR("Failed to parse scene file: {}", e.what());
         return nullptr;
     }
-    if (!json.contains("name") || !json.contains("world"))
+    if (!json.contains("name"))
     {
         METEOR_CORE_ERROR("Scene file invalid: {}", path.string());
         return nullptr; 
@@ -96,9 +96,12 @@ std::unique_ptr<meteor::Scene> meteor::SceneSerializer::Deserialize(const std::f
 
     std::string name = json["name"].get<std::string>();
     ecs::World world;
-    for (auto& entity : json["world"])
+    if (json.contains("world"))
     {
-        DeserializeEntity(entity, world);
+        for (auto& entity : json["world"])
+        {
+            DeserializeEntity(entity, world);
+        }        
     }
     return std::make_unique<Scene>(name, std::move(world));
 }

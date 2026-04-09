@@ -6,16 +6,41 @@ public:
     void OnRender() override
     {
         meteor::Application::OnRender();
+
+        ImGuiBegin();
         OnImGui();
+        ImGuiEnd();
     }
 
     void OnImGui()
     {
-        ImGuiBegin();
+        ImGui::Begin("Settings");
 
-        ImGui::ShowDemoWindow();
+        for (auto& [key, scene] : GetSceneManager()->GetScenes())
+        {
+            if (ImGui::Button("Create Entity"))
+            {
+                scene->CreateEntity();
+            }
 
-        ImGuiEnd();
+            for (meteor::ecs::Entity entity : scene->GetWorld())
+            {
+                if (auto uuid = scene->GetWorld().TryGetComponent<meteor::UUIDComponent>(entity)->uuid.GetUUID())
+                {
+                    if (ImGui::TreeNode(std::to_string(uuid).c_str()))
+                    {
+                        if (ImGui::Button("Add Component"))
+                        {
+                            scene->GetWorld().AddComponent<meteor::ParentComponent>(entity, 131313);
+                        }
+                        ImGui::TreePop();
+                    }
+                    
+                }
+            }
+        }
+
+        ImGui::End();
     }
 
     void ImGuiBegin()

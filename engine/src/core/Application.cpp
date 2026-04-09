@@ -2,20 +2,24 @@
 
 void meteor::Application::Init()
 {
-    scene_ = std::make_unique<Scene>("Scene1");
-    scene_->OnStart();
-    scene_->OnActivate();
     window_ = std::make_unique<Window>(1920, 1080, "Meteor Engine");
 
     int success = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     METEOR_CORE_ASSERT(success, "Failed to initialize glad");
 
     InitImGui();
+
+    scene_manager_ = std::make_unique<SceneManager>(SCENES_DIR);
+    if (!scene_manager_->LoadScene("start_scene"))
+    {
+        scene_manager_->CreateScene("start_scene");
+    }
 }
 
 void meteor::Application::Shutdown()
 {
-    scene_->OnDeactivate();
+    scene_manager_->SaveScene("start_scene");
+    scene_manager_->Clear();
     ShutdownImGui();
 }
 
@@ -62,17 +66,26 @@ void meteor::Application::OnEvent(Event& event)
         return false;
     });
 
-    scene_->OnEvent(event);
+    for (auto& [key, scene] : scene_manager_->GetScenes())
+    {
+        scene->OnEvent(event);
+    }
 }
 
 void meteor::Application::OnUpdate(const float dt)
 {
-    scene_->OnUpdate(dt);
+    for (auto& [key, scene] : scene_manager_->GetScenes())
+    {
+        scene->OnUpdate(dt);
+    }
 }
 
 void meteor::Application::OnRender()
 {
-    scene_->OnRender();
+    for (auto& [key, scene] : scene_manager_->GetScenes())
+    {
+        scene->OnRender();
+    }
 
     glBindVertexArray(vertex_array_);
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);

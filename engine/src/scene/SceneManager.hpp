@@ -17,9 +17,11 @@ namespace meteor
 
         ~SceneManager() = default;
 
-        void LoadScene(const std::string& name);
+        bool LoadScene(const std::string& name);
         void SaveScene(const std::string& name);
         void CreateScene(const std::string& name);
+
+        void Clear();
 
         [[nodiscard]] Scene& GetScene(const std::string& name);
         [[nodiscard]] SceneMap& GetScenes() noexcept {return scenes_;}

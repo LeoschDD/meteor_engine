@@ -2,7 +2,7 @@
 
 #include "core/Headers.hpp"
 #include "core/Log.hpp"
-#include "scene/Scene.hpp"
+#include "scene/SceneManager.hpp"
 #include "core/Core.hpp"
 #include "core/Window.hpp"
 
@@ -27,10 +27,12 @@ namespace meteor
 
         void Run();
 
+        SceneManager* GetSceneManager() {return scene_manager_.get();}
+
     private:
         bool running_{false};
 
-        std::unique_ptr<Scene> scene_;
+        std::unique_ptr<SceneManager> scene_manager_;
         std::unique_ptr<Window> window_;
 
         uint32_t vertex_array_, vertex_buffer_, index_buffer_;

@@ -35,6 +35,7 @@ target_link_libraries(meteor_engine
 )
 
 target_compile_definitions(meteor_engine 
-    PRIVATE
+    PUBLIC
         ENGINE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+        SCENES_DIR="${CMAKE_SOURCE_DIR}/sandbox/scenes"
 )
