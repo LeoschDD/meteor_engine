@@ -1,10 +1,10 @@
 #include "serialization/SceneSerializer.hpp"
-#include "components/ChildrenComponent.hpp"
-#include "components/ParentComponent.hpp"
+#include "components/BasicComponents.hpp"
 
 nlohmann::ordered_json meteor::SceneSerializer::SerializeEntity(ecs::Entity entity, ecs::World& world, std::unordered_map<meteor::ecs::Entity, uint64_t>& map)
 {
     nlohmann::ordered_json json;
+    if (!map.contains(entity)) return json;
 
     json["id"] = map[entity];
     if (auto* parent = world.TryGetComponent<ParentComponent>(entity))

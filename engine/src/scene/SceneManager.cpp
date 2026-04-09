@@ -1,6 +1,5 @@
 #include "scene/SceneManager.hpp"
 #include "core/Core.hpp"
-#include "SceneManager.hpp"
 
 meteor::SceneManager::~SceneManager()
 {

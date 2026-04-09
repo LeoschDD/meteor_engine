@@ -8,4 +8,9 @@ namespace meteor
     {
         ecs::Entity parent;
     };
+
+    struct ChildrenComponent
+    {
+        std::vector<ecs::Entity> children;
+    };
 }
