@@ -15,6 +15,11 @@ void meteor::Scene::OnStart()
 {
     if (started_) return;
     started_ = true;
+
+    for (auto& system : systems_)
+    {
+        system->OnStart();
+    }
 }
 
 void meteor::Scene::OnActivate()

@@ -2,6 +2,7 @@
 
 #include "ecs/World.hpp"
 #include "core/Event.hpp"
+#include "systems/SystemBase.hpp"
 
 namespace meteor
 {
@@ -29,6 +30,8 @@ namespace meteor
     private:
         bool started_{false};
         std::string name_;
+
         ecs::World world_;
+        std::vector<std::unique_ptr<SystemBase>> systems_;
     };
 }

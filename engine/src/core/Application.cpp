@@ -9,17 +9,16 @@ void meteor::Application::Init()
 
     InitImGui();
 
-    scene_manager_ = std::make_unique<SceneManager>(SCENES_DIR);
+    scene_manager_ = std::make_unique<SceneManager>();
     if (!scene_manager_->LoadScene("start_scene"))
     {
-        scene_manager_->CreateScene("start_scene");
+        scene_manager_->SetScene(std::make_unique<Scene>("start_scene"));
     }
 }
 
 void meteor::Application::Shutdown()
 {
-    scene_manager_->SaveScene("start_scene");
-    scene_manager_->Clear();
+    scene_manager_->SetScene(nullptr);
     ShutdownImGui();
 }
 
@@ -66,27 +65,17 @@ void meteor::Application::OnEvent(Event& event)
         return false;
     });
 
-    for (auto& [key, scene] : scene_manager_->GetScenes())
-    {
-        scene->OnEvent(event);
-    }
+    scene_manager_->GetScene()->OnEvent(event);
 }
 
 void meteor::Application::OnUpdate(const float dt)
 {
-    for (auto& [key, scene] : scene_manager_->GetScenes())
-    {
-        scene->OnUpdate(dt);
-    }
+    scene_manager_->GetScene()->OnUpdate(dt);
 }
 
 void meteor::Application::OnRender()
 {
-    for (auto& [key, scene] : scene_manager_->GetScenes())
-    {
-        scene->OnRender();
-    }
-
+    scene_manager_->GetScene()->OnRender();
     glBindVertexArray(vertex_array_);
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 }

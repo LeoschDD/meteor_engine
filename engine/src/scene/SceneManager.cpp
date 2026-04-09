@@ -1,51 +1,41 @@
 #include "scene/SceneManager.hpp"
 #include "core/Core.hpp"
+#include "SceneManager.hpp"
 
-bool meteor::SceneManager::LoadScene(const std::string& name)
+meteor::SceneManager::~SceneManager()
 {
-    if (scenes_.contains(name)) 
-    {
-        METEOR_CORE_WARN("Tried to load scene {} that is already loaded", name);
-        return true;
-    }
-    if (auto scene = scene_serializer_.Deserialize(scene_folder_ / (name + ".msc")))
-    {
-        scenes_.emplace(name, scene_serializer_.Deserialize(scene_folder_ / (name + ".msc")));
-        GetScene(name).OnActivate();
-        return true;
-    }
-    return false;
+    SetScene(nullptr);
 }
 
-void meteor::SceneManager::SaveScene(const std::string& name)
+bool meteor::SceneManager::LoadScene(const std::filesystem::path &path)
 {
-    auto it = scenes_.find(name);
-    if (it == scenes_.end())
+    auto scene = scene_serializer_.Deserialize(path);
+    if (!scene)
     {
-        METEOR_CORE_WARN("Can't save scene");
+        METEOR_CORE_TRACE("Failed to load scene");
+        return false;
+    }
+    SetScene(std::move(scene));
+    return true;
+}
+
+void meteor::SceneManager::SaveScene(const std::filesystem::path& path)
+{
+    if (!scene_)
+    {
+        METEOR_CORE_WARN("Can't save scene - no active scene");
         return;
     }
-    it->second->OnDeactivate();
-    scene_serializer_.Serialize(scene_folder_ / (name + ".msc"), *it->second);
+    scene_serializer_.Serialize(path, *scene_.get());
 }
 
-void meteor::SceneManager::CreateScene(const std::string& name)
+void meteor::SceneManager::SetScene(std::unique_ptr<Scene> scene)
 {
-    scenes_[name] = std::make_unique<Scene>(name);
-    GetScene(name).OnActivate();
-}
-
-void meteor::SceneManager::Clear()
-{
-    for (auto& scene : scenes_)
+    if (scene_) scene_->OnDeactivate();
+    if (scene)
     {
-        scene.second->OnDeactivate();
+        scene->OnActivate();
+        scene->OnStart();
     }
-    scenes_.clear();
-}
-
-meteor::Scene& meteor::SceneManager::GetScene(const std::string& name)
-{
-    METEOR_ASSERT(scenes_.contains(name), "Scene {0} is not loaded", name);
-    return *scenes_[name];
+    scene_ = std::move(scene);
 }

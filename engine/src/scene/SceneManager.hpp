@@ -7,28 +7,17 @@ namespace meteor
 {
     class SceneManager
     {
-    private:
-        using SceneMap = std::unordered_map<std::string, std::unique_ptr<Scene>>;
-    
     public:
-        explicit SceneManager(const std::filesystem::path& scene_folder)
-            : scene_folder_(scene_folder)
-        {}
+        SceneManager() = default;
+        ~SceneManager();
 
-        ~SceneManager() = default;
-
-        bool LoadScene(const std::string& name);
-        void SaveScene(const std::string& name);
-        void CreateScene(const std::string& name);
-
-        void Clear();
-
-        [[nodiscard]] Scene& GetScene(const std::string& name);
-        [[nodiscard]] SceneMap& GetScenes() noexcept {return scenes_;}
+        bool LoadScene(const std::filesystem::path& path);
+        void SaveScene(const std::filesystem::path& path);
+        void SetScene(std::unique_ptr<Scene> scene);
+        [[nodiscard]] Scene* GetScene() noexcept {return scene_.get();}
 
     private:
-        std::filesystem::path scene_folder_;
+        std::unique_ptr<Scene> scene_;
         SceneSerializer scene_serializer_;
-        SceneMap scenes_;
     };
 }
