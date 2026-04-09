@@ -26,7 +26,7 @@ namespace meteor::ecs::internal
             auto it = Insert(entity);
             size_t index = it - SparseSet::begin();
             
-            METEOR_ASSERT(index <= packed_components_.size(), "Packed components out of sync with sparse set");
+            METEOR_CORE_ASSERT(index <= packed_components_.size(), "Packed components out of sync with sparse set");
 
             if (packed_components_.size() == index)
             {

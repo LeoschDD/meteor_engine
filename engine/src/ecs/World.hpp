@@ -49,14 +49,10 @@ namespace meteor::ecs
         }
 
         template<typename Component>
-        [[nodiscard]] internal::ComponentPool<Component>* GetPool()
+        [[nodiscard]] internal::ComponentPool<Component>* FindPool()
         {
             ComponentId id = GetComponentId<Component>();
-            if (!pools_.contains(id)) 
-            {
-                METEOR_CORE_WARN("Component not registered");
-                return nullptr;
-            }
+            if (!pools_.contains(id)) return nullptr;
             return static_cast<internal::ComponentPool<Component>*>(pools_.at(id).get());
         }
 
@@ -118,7 +114,7 @@ namespace meteor::ecs
         template<typename Component>
         void EraseComponent(Entity entity)
         {
-            auto* pool = GetPool<Component>();
+            auto* pool = FindPool<Component>();
             if (pool) pool->Erase(entity);
         }
 
@@ -126,14 +122,14 @@ namespace meteor::ecs
         [[nodiscard]] Component& GetComponent(Entity entity)
         {
             auto* pool = EnsurePool<Component>();
-            METEOR_ASSERT(pool, "Component not registered");
+            METEOR_CORE_ASSERT(pool, "Component not registered");
             return pool->Get(entity);
         }
 
         template<typename Component>
         [[nodiscard]] Component* TryGetComponent(Entity entity)
         {
-            auto* pool = GetPool<Component>();
+            auto* pool = FindPool<Component>();
             if (pool) return pool->TryGet(entity);
             return nullptr;
         }
@@ -141,7 +137,7 @@ namespace meteor::ecs
         template<typename Component>
         [[nodiscard]] bool HasComponent(Entity entity)
         {
-            auto* pool = GetPool<Component>();
+            auto* pool = FindPool<Component>();
             if (pool) return pool->Contains(entity);
             return false;
         }

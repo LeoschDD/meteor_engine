@@ -14,32 +14,63 @@ public:
 
     void OnImGui()
     {
-        ImGui::Begin("Settings");
+        DrawMenu();
+        DrawSceneSetting();
+    }
 
-        for (auto& [key, scene] : GetSceneManager()->GetScenes())
+    void DrawMenu()
+    {
+        ImGui::BeginMainMenuBar();
+        if (ImGui::BeginMenu("New Scene"))
         {
-            if (ImGui::Button("Create Entity"))
-            {
-                scene->CreateEntity();
-            }
+            static char* buffer = new char[50];
+            ImGui::InputText("Name", buffer, 50);
+            if (ImGui::Button("Create")) GetSceneManager()->SetScene(std::make_unique<meteor::Scene>(std::string(buffer)));
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Load Scene"))
+        {
+            static char* buffer = new char[50];
+            ImGui::InputText("Name", buffer, 50);
+            if (ImGui::Button("Load")) GetSceneManager()->LoadScene(std::string(SCENES_DIR "/" + std::string(buffer) + ".msc"));
+            ImGui::EndMenu();
+        }
+        if (ImGui::MenuItem("Save Scene"))
+        {
+            GetSceneManager()->SaveScene(std::string(SCENES_DIR "/" + GetSceneManager()->GetScene()->GetName() + ".msc"));
+        }
+        ImGui::EndMainMenuBar();
+    }
 
-            for (meteor::ecs::Entity entity : scene->GetWorld())
+    void DrawSceneSetting()
+    {
+        ImGui::Begin("Scene Settings");
+        auto scene = GetSceneManager()->GetScene();
+        
+        if (ImGui::Button("Create Entity"))
+        {
+            scene->CreateEntity();
+        }
+
+        for (meteor::ecs::Entity entity : scene->GetWorld())
+        {
+            if (auto uuid = scene->GetWorld().TryGetComponent<meteor::UUIDComponent>(entity)->uuid.GetUUID())
             {
-                if (auto uuid = scene->GetWorld().TryGetComponent<meteor::UUIDComponent>(entity)->uuid.GetUUID())
+                if (ImGui::TreeNode(std::to_string(uuid).c_str()))
                 {
-                    if (ImGui::TreeNode(std::to_string(uuid).c_str()))
+                    if (ImGui::BeginMenu("Entity"))
                     {
                         if (ImGui::Button("Add Component"))
                         {
                             scene->GetWorld().AddComponent<meteor::ParentComponent>(entity, 131313);
-                        }
-                        ImGui::TreePop();
+                        }      
+                        ImGui::EndMenu();                
                     }
-                    
+                    ImGui::TreePop();
                 }
-            }
+                
+            } 
         }
-
         ImGui::End();
     }
 
