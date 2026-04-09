@@ -21,8 +21,6 @@ namespace meteor
         void OnEvent(Event& event);
         void OnUpdate(const float dt);
         void OnRender();
-
-        void CreateEntity();
         
         [[nodiscard]] const std::string& GetName() const noexcept {return name_;}
         [[nodiscard]] ecs::World& GetWorld() noexcept {return world_;}

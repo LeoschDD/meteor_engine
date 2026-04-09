@@ -7,8 +7,8 @@ namespace meteor
     class SceneSerializer
     {
     private:
-        nlohmann::ordered_json SerializeEntity(ecs::Entity entity, ecs::World& world);
-        void DeserializeEntity(nlohmann::ordered_json& json, ecs::World& world);
+        nlohmann::ordered_json SerializeEntity(ecs::Entity entity, ecs::World& world, std::unordered_map<meteor::ecs::Entity, uint64_t>& map);
+        void DeserializeEntity(nlohmann::ordered_json& json, ecs::World& world, std::unordered_map<uint64_t, meteor::ecs::Entity>& map);
 
     public:
         SceneSerializer() = default;

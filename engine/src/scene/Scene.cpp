@@ -1,6 +1,4 @@
 #include "scene/Scene.hpp"
-#include "components/UUIDComponent.hpp"
-
 
 meteor::Scene::Scene(const std::string& name)
     : name_(name)
@@ -49,10 +47,4 @@ void meteor::Scene::OnUpdate(const float dt)
 
 void meteor::Scene::OnRender()
 {
-}
-
-void meteor::Scene::CreateEntity()
-{
-    auto entity = world_.Create();
-    world_.AddComponent<UUIDComponent>(entity);
 }

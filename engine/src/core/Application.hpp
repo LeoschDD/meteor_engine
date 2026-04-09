@@ -28,6 +28,7 @@ namespace meteor
         void Run();
 
         SceneManager* GetSceneManager() {return scene_manager_.get();}
+        Window* GetWindow() {return window_.get();}
 
     private:
         bool running_{false};

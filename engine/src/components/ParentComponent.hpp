@@ -1,11 +1,11 @@
 #pragma once
 
-#include "core/UUID.hpp"
+#include "ecs/Ecs.hpp"
 
 namespace meteor
 {
     struct ParentComponent
     {
-        UUID parent;
+        ecs::Entity parent;
     };
 }

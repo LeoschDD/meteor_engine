@@ -10,7 +10,7 @@ void meteor::Application::Init()
     InitImGui();
 
     scene_manager_ = std::make_unique<SceneManager>();
-    if (!scene_manager_->LoadScene("start_scene"))
+    if (!scene_manager_->LoadScene(std::string(SCENES_DIR "/start_scene.msc")))
     {
         scene_manager_->SetScene(std::make_unique<Scene>("start_scene"));
     }

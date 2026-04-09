@@ -1,7 +1,7 @@
 #pragma once
 
 #include "scene/Scene.hpp"
-#include "serialization/WorldSerializer.hpp"
+#include "serialization/SceneSerializer.hpp"
 
 namespace meteor
 {
