@@ -49,27 +49,38 @@ public:
         
         if (ImGui::Button("Create Entity"))
         {
-            scene->CreateEntity();
+            scene->GetWorld().Create();
         }
 
         for (meteor::ecs::Entity entity : scene->GetWorld())
         {
-            if (auto uuid = scene->GetWorld().TryGetComponent<meteor::UUIDComponent>(entity)->uuid.GetUUID())
+            if (ImGui::TreeNode(std::to_string(entity).c_str()))
             {
-                if (ImGui::TreeNode(std::to_string(uuid).c_str()))
+                if (ImGui::BeginMenu("Entity"))
                 {
-                    if (ImGui::BeginMenu("Entity"))
+                    if (ImGui::Button("Add Parent"))
                     {
-                        if (ImGui::Button("Add Component"))
+                        scene->GetWorld().AddComponent<meteor::ParentComponent>(entity, 0);
+                    }  
+                    if (ImGui::Button("Add Child"))
+                    {
+                        if (auto* children = scene->GetWorld().TryGetComponent<meteor::ChildrenComponent>(entity))
                         {
-                            scene->GetWorld().AddComponent<meteor::ParentComponent>(entity, 131313);
-                        }      
-                        ImGui::EndMenu();                
-                    }
-                    ImGui::TreePop();
+                            children->children.push_back(scene->GetWorld().Create());
+                        }
+                        else
+                        {
+                            scene->GetWorld().AddComponent<meteor::ChildrenComponent>(entity);
+                            if (auto* children = scene->GetWorld().TryGetComponent<meteor::ChildrenComponent>(entity))
+                            {
+                                children->children.push_back(scene->GetWorld().Create());
+                            }
+                        }
+                    }     
+                    ImGui::EndMenu();                
                 }
-                
-            } 
+                ImGui::TreePop();
+            }  
         }
         ImGui::End();
     }
