@@ -55,17 +55,17 @@ void meteor::SceneSerializer::DeserializeEntity(nlohmann::ordered_json& json, ec
     if (json.contains("transform3D"))
     {
         Transform3DComponent transform;
-        if (json.contains("position"))
+        if (json["transform3D"].contains("position"))
         {
             auto position = json["transform3D"]["postion"].get<std::array<float, 3>>();
             transform.position = glm::vec3(position[0], position[1], position[2]);
         }
-        if (json.contains("scale"))
+        if (json["transform3D"].contains("scale"))
         {
             auto scale = json["transform3D"]["scale"].get<std::array<float, 3>>();
             transform.scale = glm::vec3(scale[0], scale[1], scale[2]);
         }
-        if (json.contains("rotation"))
+        if (json["transform3D"].contains("rotation"))
         {
             auto rotation = json["transform3D"]["rotation"].get<std::array<float, 3>>();
             transform.rotation = glm::quat(glm::vec3(rotation[0], rotation[1], rotation[2]));
