@@ -1,5 +1,6 @@
 #include "serialization/SceneSerializer.hpp"
 #include "components/BasicComponents.hpp"
+#include "components/TransformComponents.hpp"
 
 nlohmann::ordered_json meteor::SceneSerializer::SerializeEntity(ecs::Entity entity, ecs::World& world, std::unordered_map<meteor::ecs::Entity, uint64_t>& map)
 {
@@ -18,6 +19,14 @@ nlohmann::ordered_json meteor::SceneSerializer::SerializeEntity(ecs::Entity enti
             if (map.contains(child)) json["children"].push_back(map[child]); 
         }
     }   
+    if (auto* transform = world.TryGetComponent<Transform3DComponent>(entity))
+    {
+        glm::vec3 rotation = glm::eulerAngles(transform->rotation);
+
+        json["transform3D"]["position"] = {transform->position.x, transform->position.y, transform->position.z};
+        json["transform3D"]["scale"] = {transform->scale.x, transform->scale.y, transform->scale.z};
+        json["transform3D"]["rotation"] = {rotation.x,rotation.y, rotation.z};
+    }
     return json;
 }
 
@@ -42,6 +51,25 @@ void meteor::SceneSerializer::DeserializeEntity(nlohmann::ordered_json& json, ec
             if (map.contains(file_id)) temp_children.push_back(map[file_id]);
         }
         if (!temp_children.empty()) world.AddComponent<ChildrenComponent>(entity, temp_children);
+    }
+    if (json.contains("transform3D"))
+    {
+        Transform3DComponent transform;
+        if (json.contains("position"))
+        {
+            auto position = json["transform3D"]["postion"].get<std::array<float, 3>>();
+            transform.position = glm::vec3(position[0], position[1], position[2]);
+        }
+        if (json.contains("scale"))
+        {
+            auto scale = json["transform3D"]["scale"].get<std::array<float, 3>>();
+            transform.scale = glm::vec3(scale[0], scale[1], scale[2]);
+        }
+        if (json.contains("rotation"))
+        {
+            auto rotation = json["transform3D"]["rotation"].get<std::array<float, 3>>();
+            transform.rotation = glm::quat(glm::vec3(rotation[0], rotation[1], rotation[2]));
+        }
     }
 }
 
