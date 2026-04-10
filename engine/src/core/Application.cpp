@@ -14,6 +14,8 @@ void meteor::Application::Init()
     {
         scene_manager_->SetScene(std::make_unique<Scene>("start_scene"));
     }
+
+    shader_ = std::make_unique<Shader>(ENGINE_DIR "/resources/shaders/basic.vs", ENGINE_DIR "/resources/shaders/basic.fs");
 }
 
 void meteor::Application::Shutdown()
@@ -75,9 +77,11 @@ void meteor::Application::OnUpdate(const float dt)
 
 void meteor::Application::OnRender()
 {
+    shader_->Bind();
     scene_manager_->GetScene()->OnRender();
     glBindVertexArray(vertex_array_);
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+    shader_->Unbind();
 }
 
 meteor::Application::Application()
