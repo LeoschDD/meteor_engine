@@ -36,6 +36,7 @@ void meteor::Application::InitImGui()
     io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; 
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     ImGui_ImplGlfw_InitForOpenGL(window_->GetNative(), true);
     ImGui_ImplOpenGL3_Init();
@@ -106,7 +107,7 @@ meteor::Application::Application()
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
-
+   
     index_buffer_ = std::make_unique<IndexBuffer>(indices);
 }   
 

@@ -15,73 +15,164 @@ public:
     void OnImGui()
     {
         DrawMenu();
-        DrawSceneSetting();
+        DrawSceneTree();
+        DrawInspector();
     }
+
+    ////////////////////////////////////////////////////
+    // Menu bar ////////////////////////////////////////
+    ////////////////////////////////////////////////////
 
     void DrawMenu()
     {
-        ImGui::BeginMainMenuBar();
-        if (ImGui::BeginMenu("New Scene"))
+        if (ImGui::BeginMainMenuBar())
         {
-            static char* buffer = new char[50];
-            ImGui::InputText("Name", buffer, 50);
-            if (ImGui::Button("Create")) GetSceneManager()->SetScene(std::make_unique<meteor::Scene>(std::string(buffer)));
-            ImGui::EndMenu();
+            if (ImGui::BeginMenu("New Scene"))
+            {
+                static char* buffer = new char[50];
+                ImGui::InputText("Name", buffer, 50);
+                if (ImGui::Button("Create")) GetSceneManager()->SetScene(std::make_unique<meteor::Scene>(std::string(buffer)));
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Load Scene"))
+            {
+                static char* buffer = new char[50];
+                ImGui::InputText("Name", buffer, 50);
+                if (ImGui::Button("Load")) GetSceneManager()->LoadScene(std::string(SCENES_DIR "/" + std::string(buffer) + ".msc"));
+                ImGui::EndMenu();
+            }
+            if (ImGui::MenuItem("Save Scene"))
+            {
+                GetSceneManager()->SaveScene(std::string(SCENES_DIR "/" + GetSceneManager()->GetScene()->GetName() + ".msc"));
+            }            
+            ImGui::EndMainMenuBar();
         }
-        if (ImGui::BeginMenu("Load Scene"))
-        {
-            static char* buffer = new char[50];
-            ImGui::InputText("Name", buffer, 50);
-            if (ImGui::Button("Load")) GetSceneManager()->LoadScene(std::string(SCENES_DIR "/" + std::string(buffer) + ".msc"));
-            ImGui::EndMenu();
-        }
-        if (ImGui::MenuItem("Save Scene"))
-        {
-            GetSceneManager()->SaveScene(std::string(SCENES_DIR "/" + GetSceneManager()->GetScene()->GetName() + ".msc"));
-        }
-        ImGui::EndMainMenuBar();
     }
 
-    void DrawSceneSetting()
+    ////////////////////////////////////////////////////
+    // Scene tree window ///////////////////////////////
+    ////////////////////////////////////////////////////
+
+    void DrawSceneTree()
     {
-        ImGui::Begin("Scene Settings");
-        auto scene = GetSceneManager()->GetScene();
-        
-        if (ImGui::Button("Create Entity"))
+        auto& world =  GetSceneManager()->GetScene()->GetWorld();
+        ImGui::Begin("Scene Tree");
+        if (ImGui::BeginPopupContextWindow("Scene Tree Popup", ImGuiPopupFlags_NoOpenOverItems))
         {
-            scene->GetWorld().Create();
+            if (ImGui::MenuItem("Create Entity"))
+            {
+                world.Create();
+            }
+            ImGui::EndPopup();
+        }
+        for (auto entity : world)
+        {
+            // Begin recursive tree on all root entities without parent
+            if (!world.HasComponent<meteor::ParentComponent>(entity))
+            {
+                DrawNodesRecursive(entity, world);
+            }
         }
 
-        for (meteor::ecs::Entity entity : scene->GetWorld())
+        ImGui::End();
+    }
+
+    void DrawNodesRecursive(meteor::ecs::Entity entity, meteor::ecs::World& world)
+    {
+        // Set flags for node
+        ImGuiTreeNodeFlags flags = 0;
+        flags |= ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_DrawLinesToNodes | ImGuiTreeNodeFlags_OpenOnArrow;
+        if (selected_ == entity) flags |= ImGuiTreeNodeFlags_Selected;
+        if (!world.HasComponent<meteor::ChildrenComponent>(entity)) flags |= ImGuiTreeNodeFlags_Leaf;
+
+        // Begin tree node
+        bool open = ImGui::TreeNodeEx(std::format("Entity {}", std::to_string(entity)).c_str(), flags);
+        
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::IsItemToggledOpen())
         {
-            if (ImGui::TreeNode(std::to_string(entity).c_str()))
-            {
-                if (ImGui::BeginMenu("Entity"))
-                {
-                    if (ImGui::Button("Add Parent"))
-                    {
-                        scene->GetWorld().AddComponent<meteor::ParentComponent>(entity, 0);
-                    }  
-                    if (ImGui::Button("Add Child"))
-                    {
-                        if (auto* children = scene->GetWorld().TryGetComponent<meteor::ChildrenComponent>(entity))
-                        {
-                            children->children.push_back(scene->GetWorld().Create());
-                        }
-                        else
-                        {
-                            scene->GetWorld().AddComponent<meteor::ChildrenComponent>(entity);
-                            if (auto* children = scene->GetWorld().TryGetComponent<meteor::ChildrenComponent>(entity))
-                            {
-                                children->children.push_back(scene->GetWorld().Create());
-                            }
-                        }
-                    }     
-                    ImGui::EndMenu();                
-                }
-                ImGui::TreePop();
-            }  
+            selected_ = entity;
         }
+
+        // If mouseclick right begin popup
+        if (ImGui::BeginPopupContextItem(nullptr))
+        {
+            if (ImGui::MenuItem("Add Child"))
+            {
+                auto e = world.Create();
+                world.AddComponent<meteor::ParentComponent>(e, entity);
+                if (auto* children = world.TryGetComponent<meteor::ChildrenComponent>(entity)) 
+                {
+                    children->children.push_back(e);
+                }
+                else
+                {
+                    world.AddComponent<meteor::ChildrenComponent>(entity);
+                    if (auto* children = world.TryGetComponent<meteor::ChildrenComponent>(entity)) 
+                    {
+                        children->children.push_back(e);
+                    }
+                }
+            }
+            if (ImGui::BeginMenu("Add Component"))
+            {
+                if (ImGui::MenuItem("Transform 3D") && !world.HasComponent<meteor::Transform3DComponent>(entity))
+                {   
+                    world.AddComponent<meteor::Transform3DComponent>(entity);
+                    world.AddComponent<meteor::GlobalTransform3DComponent>(entity);
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndPopup();
+        }
+
+        // Draw children recursive if node opened
+        if (open)
+        {
+            if (auto* children = world.TryGetComponent<meteor::ChildrenComponent>(entity))
+            {
+                for (auto child : children->children)
+                {
+                    DrawNodesRecursive(child, world);
+                }
+            } 
+            ImGui::TreePop(); 
+        }
+    }
+
+    ////////////////////////////////////////////////////
+    // Entity Inspector ////////////////////////////////
+    ////////////////////////////////////////////////////
+
+    void DrawInspector()
+    {
+        auto& world =  GetSceneManager()->GetScene()->GetWorld();
+        ImGui::Begin("Inspector");
+        if (selected_ == meteor::ecs::INVALID_ENTITY) 
+        {
+            ImGui::End();
+            return;
+        }
+        if (auto* transform = world.TryGetComponent<meteor::Transform3DComponent>(selected_))
+        {
+            ImGui::DragFloat3("Position", &transform->position.x);
+            ImGui::DragFloat3("Scale", &transform->scale.x);
+
+            glm::vec3 euler = glm::degrees(glm::eulerAngles(transform->rotation));
+            ImGui::DragFloat3("Rotation", &euler.x);
+            transform->rotation = glm::quat(glm::radians(euler));
+        }
+        if (auto* global_transform = world.TryGetComponent<meteor::GlobalTransform3DComponent>(selected_))
+        {
+            ImGui::BeginDisabled();
+            ImGui::DragFloat3("Global Position", &global_transform->position.x);
+            ImGui::DragFloat3("Global Scale", &global_transform->scale.x);
+
+            glm::vec3 euler = glm::degrees(glm::eulerAngles(global_transform->rotation));
+            ImGui::DragFloat3("Global Rotation", &euler.x);
+            global_transform->rotation = glm::quat(glm::radians(euler));
+            ImGui::EndDisabled();
+        }
+
         ImGui::End();
     }
 
@@ -99,7 +190,7 @@ public:
     }
 
 private:
-
+    meteor::ecs::Entity selected_{meteor::ecs::INVALID_ENTITY};
 };
 
 int main()

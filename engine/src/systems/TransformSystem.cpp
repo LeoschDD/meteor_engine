@@ -1,23 +1,23 @@
 #include "systems/TransformSystem.hpp"
 
-void meteor::TransformSystem::PropagateTransform3D(GlobalTransform3DComponent &parent_gtf, std::vector<ecs::Entity> &children, ecs::World &world)
+void meteor::TransformSystem::PropagateTransform3D(GlobalTransform3DComponent& parent_global_transform, ecs::Entity entity, ecs::World &world)
 {
-    for (auto child : children)
+    if (world.HasComponent<Transform3DComponent>(entity) && 
+        world.HasComponent<GlobalTransform3DComponent>(entity))
     {
-        if (world.HasComponent<Transform3DComponent>(child) && 
-            world.HasComponent<GlobalTransform3DComponent>(child))
+        auto& transform = world.GetComponent<Transform3DComponent>(entity);
+        auto& global_transform = world.GetComponent<GlobalTransform3DComponent>(entity);
+
+        glm::vec3 scaled_position = parent_global_transform.scale * transform.position;
+        global_transform.position = parent_global_transform.rotation * scaled_position + parent_global_transform.position;
+        global_transform.scale = transform.scale * parent_global_transform.scale;
+        global_transform.rotation = parent_global_transform.rotation * transform.rotation;
+
+        if (auto* children = world.TryGetComponent<ChildrenComponent>(entity))
         {
-            auto& tf = world.GetComponent<Transform3DComponent>(child);
-            auto& gtf = world.GetComponent<GlobalTransform3DComponent>(child);
-
-            glm::vec3 scaled_position = parent_gtf.scale * tf.position;
-            gtf.position = parent_gtf.rotation * scaled_position + parent_gtf.position;
-            gtf.scale = tf.scale * parent_gtf.scale;
-            gtf.rotation = parent_gtf.rotation * tf.rotation;
-
-            if (auto* children = world.TryGetComponent<ChildrenComponent>(child))
+            for (auto child : children->children)
             {
-                PropagateTransform3D(gtf, children->children, world);
+                PropagateTransform3D(global_transform, child, world);
             }
         }
     }
@@ -26,20 +26,23 @@ void meteor::TransformSystem::PropagateTransform3D(GlobalTransform3DComponent &p
 void meteor::TransformSystem::OnUpdate(ecs::World &world, const float dt)
 {
     auto view = world.View<Transform3DComponent, GlobalTransform3DComponent>();
-    view.Each([&](ecs::Entity entity, Transform3DComponent& tf, GlobalTransform3DComponent& gtf)
+    view.Each([&](ecs::Entity entity, Transform3DComponent& transform, GlobalTransform3DComponent& global_transform)
     {
         // Filter for root entities without parent and with transform
         if (!world.HasComponent<ParentComponent>(entity))
         {
             // Root entity has global = local transform 
-            gtf.position = tf.position;
-            gtf.scale = tf.scale;
-            gtf.rotation = tf.rotation;
+            global_transform.position = transform.position;
+            global_transform.scale = transform.scale;
+            global_transform.rotation = transform.rotation;
 
             // Propagate recursive transform update from root entity
             if (auto* children = world.TryGetComponent<ChildrenComponent>(entity))
             {
-                PropagateTransform3D(gtf, children->children, world);
+                for (auto child : children->children)
+                {
+                    PropagateTransform3D(global_transform, child, world);
+                }
             }
         }
     });
