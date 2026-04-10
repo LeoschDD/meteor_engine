@@ -30,11 +30,15 @@ void meteor::SceneManager::SaveScene(const std::filesystem::path& path)
 
 void meteor::SceneManager::SetScene(std::unique_ptr<Scene> scene)
 {
-    if (scene_) scene_->OnDeactivate();
+    if (scene_) 
+    {
+        scene_->OnDeactivate();
+        scene_->OnDestroy();
+    }
     if (scene)
     {
+        scene->OnCreate();
         scene->OnActivate();
-        scene->OnStart();
     }
     scene_ = std::move(scene);
 }

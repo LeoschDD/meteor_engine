@@ -9,10 +9,10 @@ namespace meteor::ecs::internal
     class ComponentPool : public SparseSet
     {
     private:
-        using PackedComponentsType = std::vector<Component>;
+        using PackedComponentsVec = std::vector<Component>;
 
     public:
-        using Iterator = PackedComponentsType::const_iterator;
+        using Iterator = PackedComponentsVec::const_iterator;
     
     public:
         ComponentPool() = default;
@@ -113,6 +113,6 @@ namespace meteor::ecs::internal
         ComponentPool& operator=(ComponentPool&&) = default;
 
     private:
-        PackedComponentsType packed_components_;
+        PackedComponentsVec packed_components_;
     };
 }

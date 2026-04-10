@@ -1,22 +1,23 @@
 #pragma once
 
 #include "ecs/Ecs.hpp"
+#include "core/Event.hpp"
 
 namespace meteor
 {
     class SystemBase
     {
     public:
-        SystemBase(ecs::World* world)
-            : world_(world)
-        {}     
-        
+        SystemBase() = default;
         virtual ~SystemBase() = default;
 
-        virtual void OnStart() {}
-        virtual void OnUpdate() {}
+        virtual void OnCreate(ecs::World& world) {}
+        virtual void OnDestroy(ecs::World& world) {}
 
-    protected:
-        ecs::World* world_;
+        virtual void OnActivate(ecs::World& world) {}
+        virtual void OnDeactivate(ecs::World& world) {}
+
+        virtual void OnEvent(ecs::World& world, Event& event) {}
+        virtual void OnUpdate(ecs::World& world, const float dt) {}
     };
 }
