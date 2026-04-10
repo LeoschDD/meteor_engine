@@ -6,6 +6,7 @@
 #include "core/Core.hpp"
 #include "core/Window.hpp"
 #include "renderer/Shader.hpp"
+#include "renderer/Buffer.hpp"
 
 namespace meteor
 {
@@ -37,7 +38,10 @@ namespace meteor
         std::unique_ptr<SceneManager> scene_manager_;
         std::unique_ptr<Window> window_;
 
-        uint32_t vertex_array_, vertex_buffer_, index_buffer_;
+        std::unique_ptr<VertexBuffer> vertex_buffer_;
+        std::unique_ptr<IndexBuffer> index_buffer_;
+
+        uint32_t vertex_array_;
         std::unique_ptr<Shader> shader_;
     };
 }

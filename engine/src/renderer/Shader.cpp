@@ -89,29 +89,29 @@ meteor::Shader::Shader(const std::filesystem::path vs_path, const std::filesyste
     // Vertex and fragment shaders are successfully compiled.
     // Now time to link them together into a program.
     // Get a program object.
-    renderer_id_ = glCreateProgram();
+    id_ = glCreateProgram();
 
     // Attach our shaders to our program
-    glAttachShader(renderer_id_, vertexShader);
-    glAttachShader(renderer_id_, fragmentShader);
+    glAttachShader(id_, vertexShader);
+    glAttachShader(id_, fragmentShader);
 
     // Link our program
-    glLinkProgram(renderer_id_);
+    glLinkProgram(id_);
 
     // Note the different functions here: glGetProgram* instead of glGetShader*.
     GLint isLinked = 0;
-    glGetProgramiv(renderer_id_, GL_LINK_STATUS, (int *)&isLinked);
+    glGetProgramiv(id_, GL_LINK_STATUS, (int *)&isLinked);
     if (isLinked == GL_FALSE)
     {
         GLint maxLength = 0;
-        glGetProgramiv(renderer_id_, GL_INFO_LOG_LENGTH, &maxLength);
+        glGetProgramiv(id_, GL_INFO_LOG_LENGTH, &maxLength);
 
         // The maxLength includes the NULL character
         std::vector<GLchar> infoLog(maxLength);
-        glGetProgramInfoLog(renderer_id_, maxLength, &maxLength, &infoLog[0]);
+        glGetProgramInfoLog(id_, maxLength, &maxLength, &infoLog[0]);
         
         // We don't need the program anymore.
-        glDeleteProgram(renderer_id_);
+        glDeleteProgram(id_);
         // Don't leak shaders either.
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
@@ -120,18 +120,18 @@ meteor::Shader::Shader(const std::filesystem::path vs_path, const std::filesyste
     }
 
     // Always detach shaders after a successful link.
-    glDetachShader(renderer_id_, vertexShader);
-    glDetachShader(renderer_id_, fragmentShader);
+    glDetachShader(id_, vertexShader);
+    glDetachShader(id_, fragmentShader);
 }
 
 meteor::Shader::~Shader()
 {
-    glDeleteProgram(renderer_id_);
+    glDeleteProgram(id_);
 }
 
 void meteor::Shader::Bind()
 {
-    glUseProgram(renderer_id_);
+    glUseProgram(id_);
 }
 
 void meteor::Shader::Unbind()

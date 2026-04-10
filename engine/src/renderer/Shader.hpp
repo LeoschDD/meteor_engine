@@ -15,6 +15,6 @@ namespace meteor
         void Unbind();
 
     private:
-        uint32_t renderer_id_;
+        uint32_t id_;
     };
 }
