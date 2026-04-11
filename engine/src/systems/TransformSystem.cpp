@@ -2,8 +2,11 @@
 
 void meteor::TransformSystem::PropagateTransform3D(GlobalTransform3DComponent& parent_global_transform, ecs::Entity entity, ecs::World &world)
 {
-    if (world.HasComponent<Transform3DComponent>(entity) && 
-        world.HasComponent<GlobalTransform3DComponent>(entity))
+
+    auto* transform = world.TryGetComponent<Transform3DComponent>(entity);
+    auto* global_transform = world.TryGetComponent<GlobalTransform3DComponent>(entity);
+    
+    if (transform && global_transform)
     {
         auto& transform = world.GetComponent<Transform3DComponent>(entity);
         auto& global_transform = world.GetComponent<GlobalTransform3DComponent>(entity);
@@ -28,8 +31,13 @@ void meteor::TransformSystem::OnUpdate(ecs::World &world, const float dt)
     auto view = world.View<Transform3DComponent, GlobalTransform3DComponent>();
     view.Each([&](ecs::Entity entity, Transform3DComponent& transform, GlobalTransform3DComponent& global_transform)
     {
-        // Filter for root entities without parent and with transform
-        if (!world.HasComponent<ParentComponent>(entity))
+        // Entity is transform root if it has no parent or parent lacks transform component
+        auto* parent = world.TryGetComponent<ParentComponent>(entity);
+        bool root = !(parent  
+            && world.HasComponent<Transform3DComponent>(parent->parent)
+            && world.HasComponent<GlobalTransform3DComponent>(parent->parent));
+        
+        if (root)
         {
             // Root entity has global = local transform 
             global_transform.position = transform.position;

@@ -10,7 +10,7 @@ namespace meteor
     {
     private:
         void PropagateTransform3D(GlobalTransform3DComponent& parent_global_transform, ecs::Entity entity, ecs::World& world);
-
+        
     public:
         void OnUpdate(ecs::World& world, const float dt) override;
     };
