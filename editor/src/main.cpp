@@ -118,12 +118,10 @@ public:
                 if (ImGui::MenuItem("Transform 3D") && !world.HasComponent<meteor::Transform3DComponent>(entity))
                 {   
                     world.AddComponent<meteor::Transform3DComponent>(entity);
-                    world.AddComponent<meteor::GlobalTransform3DComponent>(entity);
                 }
                 if (ImGui::MenuItem("Transform 2D") && !world.HasComponent<meteor::Transform2DComponent>(entity))
                 {   
                     world.AddComponent<meteor::Transform2DComponent>(entity);
-                    world.AddComponent<meteor::GlobalTransform2DComponent>(entity);
                 }
                 ImGui::EndMenu();
             }
@@ -157,47 +155,51 @@ public:
             ImGui::End();
             return;
         }
-        auto* transform_3d = world.TryGetComponent<meteor::Transform3DComponent>(selected_);
-        auto* global_transform_3d = world.TryGetComponent<meteor::GlobalTransform3DComponent>(selected_);
-        if (transform_3d && global_transform_3d && ImGui::CollapsingHeader("Transform 3D"))
+        auto* transform3d = world.TryGetComponent<meteor::Transform3DComponent>(selected_);
+        if (transform3d && ImGui::CollapsingHeader("Transform 3D"))
         {
-            ImGui::DragFloat3("Position", &transform_3d->translation.x);
+            ImGui::DragFloat3("Position", &transform3d->Translation().x);
 
-            glm::vec3 euler = glm::degrees(glm::eulerAngles(transform_3d->rotation));
+            glm::vec3 euler = glm::degrees(glm::eulerAngles(transform3d->Rotation()));
             ImGui::DragFloat3("Rotation", &euler.x);
-            transform_3d->rotation = glm::quat(glm::radians(euler));
+            transform3d->Rotation() = glm::quat(glm::radians(euler));
 
-            ImGui::DragFloat3("Scale", &transform_3d->scale.x);
+            ImGui::DragFloat3("Scale", &transform3d->Scale().x);
 
             ImGui::BeginDisabled();
 
-            ImGui::DragFloat3("Global Position", &global_transform_3d->translation.x);
+            glm::vec3 global_translation = transform3d->GlobalTranslation();
+            glm::quat global_rotation = transform3d->GlobalRotation();
+            glm::vec3 global_scale = transform3d->GlobalScale();
 
-            glm::vec3 global_euler = glm::degrees(glm::eulerAngles(global_transform_3d->rotation));
+            ImGui::DragFloat3("Global Position", &global_translation.x);
+
+            glm::vec3 global_euler = glm::degrees(glm::eulerAngles(global_rotation));
             ImGui::DragFloat3("Global Rotation", &global_euler.x);
-            global_transform_3d->rotation = glm::quat(glm::radians(global_euler));
 
-            ImGui::DragFloat3("Global Scale", &global_transform_3d->scale.x);
+            ImGui::DragFloat3("Global Scale", &global_scale.x);
 
             ImGui::EndDisabled();
                       
         }
-        auto* transform_2d = world.TryGetComponent<meteor::Transform2DComponent>(selected_);
-        auto* global_transform_2d = world.TryGetComponent<meteor::GlobalTransform2DComponent>(selected_);
-        if (transform_2d && global_transform_2d && ImGui::CollapsingHeader("Transform 2D"))
+        auto* transform2d = world.TryGetComponent<meteor::Transform2DComponent>(selected_);
+        if (transform2d && ImGui::CollapsingHeader("Transform 2D"))
         {
-            ImGui::DragFloat2("Position", &transform_2d->translation.x);
-            ImGui::DragFloat("Rotation", &transform_2d->rotation);
-            ImGui::DragFloat2("Scale", &transform_2d->scale.x);
+            ImGui::DragFloat2("Position", &transform2d->Translation().x);
+            ImGui::DragFloat("Rotation", &transform2d->Rotation());
+            ImGui::DragFloat2("Scale", &transform2d->Scale().x);
 
             ImGui::BeginDisabled();
 
-            ImGui::DragFloat2("Global Position", &global_transform_2d->translation.x);
-            ImGui::DragFloat("Global Rotation", &transform_2d->rotation);
-            ImGui::DragFloat2("Global Scale", &global_transform_2d->scale.x);
+            glm::vec2 global_translation = transform2d->GlobalTranslation();
+            float global_rotation = transform2d->GlobalRotation();
+            glm::vec2 global_scale = transform2d->GlobalScale();
 
-            ImGui::EndDisabled();
-                      
+            ImGui::DragFloat2("Global Position", &global_translation.x);
+            ImGui::DragFloat("Global Rotation", &global_rotation);
+            ImGui::DragFloat2("Global Scale", &global_scale.x);
+
+            ImGui::EndDisabled();   
         }
 
         ImGui::End();
