@@ -10,16 +10,16 @@ namespace meteor
 
     struct Transform3DComponent
     {
-        glm::vec3 position{0.0f, 0.0f, 0.0f};
-        glm::vec3 scale{1.0f, 1.0f, 1.0f};
+        glm::vec3 translation{0.0f, 0.0f, 0.0f};
         glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
+        glm::vec3 scale{1.0f, 1.0f, 1.0f};
     };
 
     struct GlobalTransform3DComponent
     {
-        glm::vec3 position{0.0f, 0.0f, 0.0f};
-        glm::vec3 scale{1.0f, 1.0f, 1.0f};
+        glm::vec3 translation{0.0f, 0.0f, 0.0f};
         glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
+        glm::vec3 scale{1.0f, 1.0f, 1.0f};
     };
 
     ////////////////////////////////////////////////////
@@ -28,15 +28,15 @@ namespace meteor
 
     struct Transform2DComponent
     {
-        glm::vec2 position{0.0f, 0.0f};
-        glm::vec2 scale{1.0f, 1.0f};
+        glm::vec2 translation{0.0f, 0.0f};
         float rotation{0.0f};
+        glm::vec2 scale{1.0f, 1.0f};
     };
 
     struct GlobalTransform2DComponent
     {
-        glm::vec2 position{0.0f, 0.0f};
-        glm::vec2 scale{1.0f, 1.0f};
+        glm::vec2 translation{0.0f, 0.0f};
         float rotation{0.0f};
+        glm::vec2 scale{1.0f, 1.0f};
     };
 }

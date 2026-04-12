@@ -3,6 +3,92 @@
     "world": [
         {
             "id": 0
+        },
+        {
+            "id": 1,
+            "children": [
+                2
+            ]
+        },
+        {
+            "id": 2,
+            "parent": 1,
+            "children": [
+                3
+            ]
+        },
+        {
+            "id": 3,
+            "parent": 2,
+            "children": [
+                4
+            ],
+            "transform3d": {
+                "translation": [
+                    38.0,
+                    0.0,
+                    -71.0
+                ],
+                "rotation": [
+                    0.0,
+                    -0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "transform2d": {
+                "translation": [
+                    38.0,
+                    0.0
+                ],
+                "rotation": 0.0,
+                "scale": [
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        {
+            "id": 4,
+            "parent": 3,
+            "transform3d": {
+                "translation": [
+                    197.0,
+                    -34.0,
+                    0.0
+                ],
+                "rotation": [
+                    2.268928050994873,
+                    0.10437072068452835,
+                    2.3387410640716553
+                ],
+                "scale": [
+                    46.0,
+                    -28.0,
+                    1.0
+                ]
+            },
+            "transform2d": {
+                "translation": [
+                    197.0,
+                    -34.0
+                ],
+                "rotation": -21.0,
+                "scale": [
+                    46.0,
+                    -28.0
+                ]
+            }
+        },
+        {
+            "id": 5
+        },
+        {
+            "id": 6
         }
     ]
 }

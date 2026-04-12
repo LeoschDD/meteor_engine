@@ -22,10 +22,15 @@ nlohmann::ordered_json meteor::SceneSerializer::SerializeEntity(ecs::Entity enti
     if (auto* transform = world.TryGetComponent<Transform3DComponent>(entity))
     {
         glm::vec3 rotation = glm::eulerAngles(transform->rotation);
-
-        json["transform3D"]["position"] = {transform->position.x, transform->position.y, transform->position.z};
-        json["transform3D"]["scale"] = {transform->scale.x, transform->scale.y, transform->scale.z};
-        json["transform3D"]["rotation"] = {rotation.x,rotation.y, rotation.z};
+        json["transform3d"]["translation"] = {transform->translation.x, transform->translation.y, transform->translation.z};
+        json["transform3d"]["rotation"] = {rotation.x,rotation.y, rotation.z};
+        json["transform3d"]["scale"] = {transform->scale.x, transform->scale.y, transform->scale.z};
+    }
+    if (auto* transform = world.TryGetComponent<Transform2DComponent>(entity))
+    {
+        json["transform2d"]["translation"] = {transform->translation.x, transform->translation.y};
+        json["transform2d"]["rotation"] = transform->rotation;
+        json["transform2d"]["scale"] = {transform->scale.x, transform->scale.y};
     }
     return json;
 }
@@ -52,26 +57,47 @@ void meteor::SceneSerializer::DeserializeEntity(nlohmann::ordered_json& json, ec
         }
         if (!temp_children.empty()) world.AddComponent<ChildrenComponent>(entity, temp_children);
     }
-    if (json.contains("transform3D"))
+    if (json.contains("transform3d"))
     {
         Transform3DComponent transform;
-        if (json["transform3D"].contains("position"))
+        if (json["transform3d"].contains("translation"))
         {
-            auto position = json["transform3D"]["position"].get<std::array<float, 3>>();
-            transform.position = glm::vec3(position[0], position[1], position[2]);
+            auto translation = json["transform3d"]["translation"].get<std::array<float, 3>>();
+            transform.translation = glm::vec3(translation[0], translation[1], translation[2]);
         }
-        if (json["transform3D"].contains("scale"))
+        if (json["transform3d"].contains("rotation"))
         {
-            auto scale = json["transform3D"]["scale"].get<std::array<float, 3>>();
-            transform.scale = glm::vec3(scale[0], scale[1], scale[2]);
-        }
-        if (json["transform3D"].contains("rotation"))
-        {
-            auto rotation = json["transform3D"]["rotation"].get<std::array<float, 3>>();
+            auto rotation = json["transform3d"]["rotation"].get<std::array<float, 3>>();
             transform.rotation = glm::quat(glm::vec3(rotation[0], rotation[1], rotation[2]));
+        }
+        if (json["transform3d"].contains("scale"))
+        {
+            auto scale = json["transform3d"]["scale"].get<std::array<float, 3>>();
+            transform.scale = glm::vec3(scale[0], scale[1], scale[2]);
         }
         world.AddComponent<Transform3DComponent>(entity, transform);
         world.AddComponent<GlobalTransform3DComponent>(entity);
+    }
+    if (json.contains("transform2d"))
+    {
+        Transform2DComponent transform;
+        if (json["transform2d"].contains("translation"))
+        {
+            auto translation = json["transform2d"]["translation"].get<std::array<float, 2>>();
+            transform.translation = glm::vec2(translation[0], translation[1]);
+        }
+        if (json["transform2d"].contains("rotation"))
+        {
+            auto rotation = json["transform2d"]["rotation"].get<float>();
+            transform.rotation = rotation;
+        }
+        if (json["transform2d"].contains("scale"))
+        {
+            auto scale = json["transform2d"]["scale"].get<std::array<float, 2>>();
+            transform.scale = glm::vec2(scale[0], scale[1]);
+        }
+        world.AddComponent<Transform2DComponent>(entity, transform);
+        world.AddComponent<GlobalTransform2DComponent>(entity);
     }
 }
 

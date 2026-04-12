@@ -120,6 +120,11 @@ public:
                     world.AddComponent<meteor::Transform3DComponent>(entity);
                     world.AddComponent<meteor::GlobalTransform3DComponent>(entity);
                 }
+                if (ImGui::MenuItem("Transform 2D") && !world.HasComponent<meteor::Transform2DComponent>(entity))
+                {   
+                    world.AddComponent<meteor::Transform2DComponent>(entity);
+                    world.AddComponent<meteor::GlobalTransform2DComponent>(entity);
+                }
                 ImGui::EndMenu();
             }
             ImGui::EndPopup();
@@ -152,25 +157,47 @@ public:
             ImGui::End();
             return;
         }
-        if (auto* transform = world.TryGetComponent<meteor::Transform3DComponent>(selected_))
+        auto* transform_3d = world.TryGetComponent<meteor::Transform3DComponent>(selected_);
+        auto* global_transform_3d = world.TryGetComponent<meteor::GlobalTransform3DComponent>(selected_);
+        if (transform_3d && global_transform_3d && ImGui::CollapsingHeader("Transform 3D"))
         {
-            ImGui::DragFloat3("Position", &transform->position.x);
-            ImGui::DragFloat3("Scale", &transform->scale.x);
+            ImGui::DragFloat3("Position", &transform_3d->translation.x);
 
-            glm::vec3 euler = glm::degrees(glm::eulerAngles(transform->rotation));
+            glm::vec3 euler = glm::degrees(glm::eulerAngles(transform_3d->rotation));
             ImGui::DragFloat3("Rotation", &euler.x);
-            transform->rotation = glm::quat(glm::radians(euler));
-        }
-        if (auto* global_transform = world.TryGetComponent<meteor::GlobalTransform3DComponent>(selected_))
-        {
-            ImGui::BeginDisabled();
-            ImGui::DragFloat3("Global Position", &global_transform->position.x);
-            ImGui::DragFloat3("Global Scale", &global_transform->scale.x);
+            transform_3d->rotation = glm::quat(glm::radians(euler));
 
-            glm::vec3 euler = glm::degrees(glm::eulerAngles(global_transform->rotation));
-            ImGui::DragFloat3("Global Rotation", &euler.x);
-            global_transform->rotation = glm::quat(glm::radians(euler));
+            ImGui::DragFloat3("Scale", &transform_3d->scale.x);
+
+            ImGui::BeginDisabled();
+
+            ImGui::DragFloat3("Global Position", &global_transform_3d->translation.x);
+
+            glm::vec3 global_euler = glm::degrees(glm::eulerAngles(global_transform_3d->rotation));
+            ImGui::DragFloat3("Global Rotation", &global_euler.x);
+            global_transform_3d->rotation = glm::quat(glm::radians(global_euler));
+
+            ImGui::DragFloat3("Global Scale", &global_transform_3d->scale.x);
+
             ImGui::EndDisabled();
+                      
+        }
+        auto* transform_2d = world.TryGetComponent<meteor::Transform2DComponent>(selected_);
+        auto* global_transform_2d = world.TryGetComponent<meteor::GlobalTransform2DComponent>(selected_);
+        if (transform_2d && global_transform_2d && ImGui::CollapsingHeader("Transform 2D"))
+        {
+            ImGui::DragFloat2("Position", &transform_2d->translation.x);
+            ImGui::DragFloat("Rotation", &transform_2d->rotation);
+            ImGui::DragFloat2("Scale", &transform_2d->scale.x);
+
+            ImGui::BeginDisabled();
+
+            ImGui::DragFloat2("Global Position", &global_transform_2d->translation.x);
+            ImGui::DragFloat("Global Rotation", &transform_2d->rotation);
+            ImGui::DragFloat2("Global Scale", &global_transform_2d->scale.x);
+
+            ImGui::EndDisabled();
+                      
         }
 
         ImGui::End();
