@@ -4,6 +4,8 @@
 
 namespace meteor
 {
+    class TransformSystem;
+
     ////////////////////////////////////////////////////
     // 3D transform ////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -16,58 +18,16 @@ namespace meteor
     public:
         Transform3DComponent() = default;
 
-        // Local transform 
+        [[nodiscard]] glm::vec3& Translation() {dirty_ = true; return local_translation_;}
+        [[nodiscard]] const glm::vec3& Translation() const {return local_translation_;}
+        [[nodiscard]] glm::quat& Rotation() {dirty_ = true; return local_rotation_;}
+        [[nodiscard]] const glm::quat& Rotation() const {return local_rotation_;}
+        [[nodiscard]] glm::vec3& Scale() {dirty_ = true; return local_scale_;}
+        [[nodiscard]] const glm::vec3& Scale() const {return local_scale_;}
 
-        [[nodiscard]] glm::vec3& Translation()
-        {
-            dirty_ = true;
-            return local_translation_;
-        }
-
-        [[nodiscard]] const glm::vec3& Translation() const
-        {
-            return local_translation_;
-        }
-
-        [[nodiscard]] glm::quat& Rotation()
-        {
-            dirty_ = true;
-            return local_rotation_;
-        }
-
-        [[nodiscard]] const glm::quat& Rotation() const
-        {
-            return local_rotation_;
-        }
-
-        [[nodiscard]] glm::vec3& Scale()
-        {
-            dirty_ = true;
-            return local_scale_;
-        }
-
-        [[nodiscard]] const glm::vec3& Scale() const
-        {
-            return local_scale_;
-        }
-
-        // Global transform is read only
-
-        [[nodiscard]] const glm::vec3& GlobalTranslation() const
-        {
-            return global_translation_;
-        }
-
-        [[nodiscard]] const glm::quat& GlobalRotation() const
-        {
-            return global_rotation_;
-        }
-
-        [[nodiscard]] const glm::vec3& GlobalScale() const
-        {
-            return global_scale_;
-        }
-
+        [[nodiscard]] const glm::vec3& GlobalTranslation() const {return global_translation_;}
+        [[nodiscard]] const glm::quat& GlobalRotation() const {return global_rotation_;}
+        [[nodiscard]] const glm::vec3& GlobalScale() const {return global_scale_;}
 
     private:
         bool dirty_{false};
@@ -93,57 +53,16 @@ namespace meteor
     public:
         Transform2DComponent() = default;
 
-        // Local transform getter
+        [[nodiscard]] glm::vec2& Translation() {dirty_ = true; return local_translation_;}
+        [[nodiscard]] const glm::vec2& Translation() const {return local_translation_;}
+        [[nodiscard]] float& Rotation() {dirty_ = true; return local_rotation_;}
+        [[nodiscard]] const float& Rotation() const {return local_rotation_;}
+        [[nodiscard]] glm::vec2& Scale() {dirty_ = true; return local_scale_;}
+        [[nodiscard]] const glm::vec2& Scale() const {return local_scale_;}
 
-        [[nodiscard]] glm::vec2& Translation()
-        {
-            dirty_ = true;
-            return local_translation_;
-        }
-
-        [[nodiscard]] const glm::vec2& Translation() const
-        {
-            return local_translation_;
-        }
-
-        [[nodiscard]] float& Rotation()
-        {
-            dirty_ = true;
-            return local_rotation_;
-        }
-
-        [[nodiscard]] const float& Rotation() const
-        {
-            return local_rotation_;
-        }
-
-        [[nodiscard]] glm::vec2& Scale()
-        {
-            dirty_ = true;
-            return local_scale_;
-        }
-
-        [[nodiscard]] const glm::vec2& Scale() const
-        {
-            return local_scale_;
-        }
-
-        // Global transform is read only
-
-        [[nodiscard]] const glm::vec2& GlobalTranslation() const
-        {
-            return global_translation_;
-        }
-
-        [[nodiscard]] const float& GlobalRotation() const
-        {
-            return global_rotation_;
-        }
-
-        [[nodiscard]] const glm::vec2& GlobalScale() const
-        {
-            return global_scale_;
-        }
+        [[nodiscard]] const glm::vec2& GlobalTranslation() const {return global_translation_;}
+        [[nodiscard]] const float& GlobalRotation() const {return global_rotation_;}
+        [[nodiscard]] const glm::vec2& GlobalScale() const {return global_scale_;}
 
     private:
         bool dirty_{false};
