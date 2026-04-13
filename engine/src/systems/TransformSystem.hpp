@@ -1,8 +1,6 @@
 #pragma once 
 
 #include "systems/SystemBase.hpp"
-#include "components/TransformComponents.hpp"
-#include "components/BasicComponents.hpp"
 
 namespace meteor
 {

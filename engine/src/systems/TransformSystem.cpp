@@ -1,4 +1,7 @@
 #include "systems/TransformSystem.hpp"
+#include "components/TransformComponents.hpp"
+#include "components/BasicComponents.hpp"
+#include "core/Maths.hpp"
 
 void meteor::TransformSystem::PropagateTransform(const glm::mat4& parent_transform, ecs::Entity entity, ecs::World& world)
 {
@@ -9,12 +12,7 @@ void meteor::TransformSystem::PropagateTransform(const glm::mat4& parent_transfo
             world.AddComponent<GlobalTransformComponent>(entity);
         }
         auto& global_transform = world.GetComponent<GlobalTransformComponent>(entity).transform;
-
-        auto transform_matrix = glm::mat4(1.0f);
-        transform_matrix = glm::translate(transform_matrix, transform->translation);
-        transform_matrix = transform_matrix * glm::mat4_cast(transform->rotation);
-        transform_matrix = glm::scale(transform_matrix, transform->scale);
-
+        auto transform_matrix = BuildTransformMatrix(transform->translation, transform->rotation, transform->scale);
         global_transform = parent_transform * transform_matrix;
     
         if (auto* children = world.TryGetComponent<ChildrenComponent>(entity))
@@ -39,11 +37,7 @@ void meteor::TransformSystem::OnUpdate(ecs::World &world, const float dt)
                 world.AddComponent<GlobalTransformComponent>(entity);
             }
             auto& global_transform = world.GetComponent<GlobalTransformComponent>(entity).transform;
-
-            global_transform = glm::mat4(1.0f);
-            global_transform = glm::translate(global_transform, transform.translation);
-            global_transform = global_transform * glm::mat4_cast(transform.rotation);
-            global_transform = glm::scale(global_transform, transform.scale);
+            global_transform = BuildTransformMatrix(transform.translation, transform.rotation, transform.scale);
             
             if (auto* children = world.TryGetComponent<ChildrenComponent>(entity))
             {
