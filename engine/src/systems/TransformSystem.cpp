@@ -1,51 +1,27 @@
 #include "systems/TransformSystem.hpp"
 
-void meteor::TransformSystem::PropagateTransform3D(Transform3DComponent& parent_transform, ecs::Entity entity, ecs::World &world, bool tree_dirty)
+void meteor::TransformSystem::PropagateTransform(const glm::mat4& parent_transform, ecs::Entity entity, ecs::World& world)
 {
-    if (auto* transform = world.TryGetComponent<Transform3DComponent>(entity))
+    if (auto* transform = world.TryGetComponent<TransformComponent>(entity))
     {
-        bool dirty = tree_dirty || transform->dirty_;
-        if (dirty)
+        if (!world.HasComponent<GlobalTransformComponent>(entity))
         {
-            glm::vec3 scaled_position = parent_transform.global_scale_ * transform->local_translation_;
-            transform->global_translation_ = parent_transform.global_rotation_ * scaled_position + parent_transform.global_translation_;
-            transform->global_rotation_ = parent_transform.global_rotation_ * transform->local_rotation_;
-            transform->global_scale_ = transform->local_scale_ * parent_transform.global_scale_;
-            transform->dirty_ = false;   
+            world.AddComponent<GlobalTransformComponent>(entity);
         }
+        auto& global_transform = world.GetComponent<GlobalTransformComponent>(entity).transform;
 
+        auto transform_matrix = glm::mat4(1.0f);
+        transform_matrix = glm::translate(transform_matrix, transform->translation);
+        transform_matrix = transform_matrix * glm::mat4_cast(transform->rotation);
+        transform_matrix = glm::scale(transform_matrix, transform->scale);
+
+        global_transform = parent_transform * transform_matrix;
+    
         if (auto* children = world.TryGetComponent<ChildrenComponent>(entity))
         {
             for (auto child : children->children)
             {
-                PropagateTransform3D(*transform, child, world, dirty);
-            }
-        }
-    }
-}
-
-void meteor::TransformSystem::PropagateTransform2D(Transform2DComponent &parent_transform, ecs::Entity entity, ecs::World &world, bool tree_dirty)
-{
-    if (auto* transform = world.TryGetComponent<Transform2DComponent>(entity))
-    {
-        bool dirty = tree_dirty || transform->dirty_;
-        if (dirty)
-        {
-            glm::vec2 scaled_pos = transform->local_translation_ * parent_transform.global_scale_;
-            float cos = std::cos(parent_transform.global_rotation_);
-            float sin = std::sin(parent_transform.global_rotation_);
-            transform->global_translation_.x = parent_transform.global_translation_.x + scaled_pos.x * cos - scaled_pos.y * sin;
-            transform->global_translation_.y = parent_transform.global_translation_.y + scaled_pos.x * sin + scaled_pos.y * cos;
-            transform->global_rotation_ = parent_transform.global_rotation_ + transform->local_rotation_;
-            transform->global_scale_ = transform->local_scale_ * parent_transform.global_scale_;   
-            transform->dirty_ = false;       
-        }
-
-        if (auto* children = world.TryGetComponent<ChildrenComponent>(entity))
-        {
-            for (auto child : children->children)
-            {
-                PropagateTransform2D(*transform, child, world, dirty);
+                PropagateTransform(global_transform, child, world);
             }
         }
     }
@@ -53,51 +29,27 @@ void meteor::TransformSystem::PropagateTransform2D(Transform2DComponent &parent_
 
 void meteor::TransformSystem::OnUpdate(ecs::World &world, const float dt)
 {
-    auto view3d = world.View<Transform3DComponent>();
-    view3d.Each([&](ecs::Entity entity, Transform3DComponent& transform)
+    world.View<TransformComponent>().Each([&](ecs::Entity entity, TransformComponent& transform)
     {
         auto* parent = world.TryGetComponent<ParentComponent>(entity);
-        if (!(parent && world.HasComponent<Transform3DComponent>(parent->parent)))
+        if (!(parent && world.HasComponent<TransformComponent>(parent->parent)))
         { 
-            bool dirty = transform.dirty_;
-            if (dirty)
+            if (!world.HasComponent<GlobalTransformComponent>(entity))
             {
-                transform.global_translation_ = transform.local_translation_;
-                transform.global_rotation_ = transform.local_rotation_;
-                transform.global_scale_ = transform.local_scale_;
-                transform.dirty_ = false;
+                world.AddComponent<GlobalTransformComponent>(entity);
             }
+            auto& global_transform = world.GetComponent<GlobalTransformComponent>(entity).transform;
 
+            global_transform = glm::mat4(1.0f);
+            global_transform = glm::translate(global_transform, transform.translation);
+            global_transform = global_transform * glm::mat4_cast(transform.rotation);
+            global_transform = glm::scale(global_transform, transform.scale);
+            
             if (auto* children = world.TryGetComponent<ChildrenComponent>(entity))
             {
                 for (auto child : children->children)
                 {
-                    PropagateTransform3D(transform, child, world, dirty);
-                }
-            }
-        }
-    });
-
-    auto view2d = world.View<Transform2DComponent>();
-    view2d.Each([&](ecs::Entity entity, Transform2DComponent& transform)
-    {
-        auto* parent = world.TryGetComponent<ParentComponent>(entity);
-        if (!(parent && world.HasComponent<Transform2DComponent>(parent->parent)))
-        {
-            bool dirty = transform.dirty_;
-            if (dirty)
-            {
-                transform.global_translation_ = transform.local_translation_;
-                transform.global_rotation_ = transform.local_rotation_;
-                transform.global_scale_ = transform.local_scale_;
-                transform.dirty_ = false;
-            }
-
-            if (auto* children = world.TryGetComponent<ChildrenComponent>(entity))
-            {
-                for (auto child : children->children)
-                {
-                    PropagateTransform2D(transform, child, world, dirty);
+                    PropagateTransform(global_transform, child, world);
                 }
             }
         }

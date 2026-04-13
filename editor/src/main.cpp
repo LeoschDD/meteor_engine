@@ -115,13 +115,9 @@ public:
             }
             if (ImGui::BeginMenu("Add Component"))
             {
-                if (ImGui::MenuItem("Transform 3D") && !world.HasComponent<meteor::Transform3DComponent>(entity))
+                if (ImGui::MenuItem("Transform") && !world.HasComponent<meteor::TransformComponent>(entity))
                 {   
-                    world.AddComponent<meteor::Transform3DComponent>(entity);
-                }
-                if (ImGui::MenuItem("Transform 2D") && !world.HasComponent<meteor::Transform2DComponent>(entity))
-                {   
-                    world.AddComponent<meteor::Transform2DComponent>(entity);
+                    world.AddComponent<meteor::TransformComponent>(entity);
                 }
                 ImGui::EndMenu();
             }
@@ -155,53 +151,38 @@ public:
             ImGui::End();
             return;
         }
-        auto* transform3d = world.TryGetComponent<meteor::Transform3DComponent>(selected_);
-        if (transform3d && ImGui::CollapsingHeader("Transform 3D"))
+        auto* transform = world.TryGetComponent<meteor::TransformComponent>(selected_);
+        auto* global_transform = world.TryGetComponent<meteor::GlobalTransformComponent>(selected_);
+        if (transform && global_transform && ImGui::CollapsingHeader("Transform"))
         {
-            ImGui::DragFloat3("Position", &transform3d->Translation().x);
+            ImGui::DragFloat3("Translation", &transform->translation.x);
 
-            glm::vec3 euler = glm::degrees(glm::eulerAngles(transform3d->Rotation()));
+            glm::vec3 euler = glm::degrees(glm::eulerAngles(transform->rotation));
             ImGui::DragFloat3("Rotation", &euler.x);
-            transform3d->Rotation() = glm::quat(glm::radians(euler));
+            transform->rotation = glm::quat(glm::radians(euler));
 
-            ImGui::DragFloat3("Scale", &transform3d->Scale().x);
+            ImGui::DragFloat3("Scale", &transform->scale.x);
+
+            ImGui::Separator();
 
             ImGui::BeginDisabled();
 
-            glm::vec3 global_translation = transform3d->GlobalTranslation();
-            glm::quat global_rotation = transform3d->GlobalRotation();
-            glm::vec3 global_scale = transform3d->GlobalScale();
+            glm::vec3 global_translation(global_transform->transform[3]);
+            glm::quat global_rotation = glm::quat_cast(global_transform->transform);
+            glm::vec3 global_scale;
+            global_scale.x = glm::length(glm::vec3(global_transform->transform[0]));
+            global_scale.y = glm::length(glm::vec3(global_transform->transform[1]));
+            global_scale.z = glm::length(glm::vec3(global_transform->transform[2]));
 
-            ImGui::DragFloat3("Global Position", &global_translation.x);
+            ImGui::DragFloat3("Global Translation", &global_translation.x);
 
             glm::vec3 global_euler = glm::degrees(glm::eulerAngles(global_rotation));
             ImGui::DragFloat3("Global Rotation", &global_euler.x);
 
             ImGui::DragFloat3("Global Scale", &global_scale.x);
 
-            ImGui::EndDisabled();
-                      
+            ImGui::EndDisabled();     
         }
-        auto* transform2d = world.TryGetComponent<meteor::Transform2DComponent>(selected_);
-        if (transform2d && ImGui::CollapsingHeader("Transform 2D"))
-        {
-            ImGui::DragFloat2("Position", &transform2d->Translation().x);
-            ImGui::DragFloat("Rotation", &transform2d->Rotation());
-            ImGui::DragFloat2("Scale", &transform2d->Scale().x);
-
-            ImGui::BeginDisabled();
-
-            glm::vec2 global_translation = transform2d->GlobalTranslation();
-            float global_rotation = transform2d->GlobalRotation();
-            glm::vec2 global_scale = transform2d->GlobalScale();
-
-            ImGui::DragFloat2("Global Position", &global_translation.x);
-            ImGui::DragFloat("Global Rotation", &global_rotation);
-            ImGui::DragFloat2("Global Scale", &global_scale.x);
-
-            ImGui::EndDisabled();   
-        }
-
         ImGui::End();
     }
 
