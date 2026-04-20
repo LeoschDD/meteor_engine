@@ -29,16 +29,16 @@ public:
         {
             if (ImGui::BeginMenu("New Scene"))
             {
-                static char* buffer = new char[50];
-                ImGui::InputText("Name", buffer, 50);
-                if (ImGui::Button("Create")) GetSceneManager()->SetScene(std::make_unique<meteor::Scene>(std::string(buffer)));
+                static std::array<char, 50> buffer;
+                ImGui::InputText("Name", buffer.data(), 50);
+                if (ImGui::Button("Create")) GetSceneManager()->SetScene(std::make_unique<meteor::Scene>(std::string(buffer.data())));
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Load Scene"))
             {
-                static char* buffer = new char[50];
-                ImGui::InputText("Name", buffer, 50);
-                if (ImGui::Button("Load")) GetSceneManager()->LoadScene(std::string(SCENES_DIR "/" + std::string(buffer) + ".msc"));
+                static std::array<char, 50> buffer;
+                ImGui::InputText("Name", buffer.data(), 50);
+                if (ImGui::Button("Load")) GetSceneManager()->LoadScene(std::string(SCENES_DIR "/" + std::string(buffer.data()) + ".msc"));
                 ImGui::EndMenu();
             }
             if (ImGui::MenuItem("Save Scene"))

@@ -15,7 +15,9 @@ void meteor::Application::Init()
         scene_manager_->SetScene(std::make_unique<Scene>("start_scene"));
     }
 
-    shader_ = std::make_unique<Shader>(ENGINE_DIR "/resources/shaders/basic.vs", ENGINE_DIR "/resources/shaders/basic.fs");
+    shader_ = std::make_unique<Shader>(
+        ENGINE_DIR "/resources/shaders/basic.vs", 
+        ENGINE_DIR "/resources/shaders/basic.fs");
 }
 
 void meteor::Application::Shutdown()
@@ -107,7 +109,7 @@ meteor::Application::Application()
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
-   
+
     index_buffer_ = std::make_unique<IndexBuffer>(indices);
 }   
 

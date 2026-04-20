@@ -25,7 +25,7 @@ void meteor::TransformSystem::PropagateTransform(const glm::mat4& parent_transfo
     }
 }
 
-void meteor::TransformSystem::OnUpdate(ecs::World &world, const float dt)
+void meteor::TransformSystem::OnUpdate(ecs::World& world, const float dt)
 {
     world.View<TransformComponent>().Each([&](ecs::Entity entity, TransformComponent& transform)
     {
