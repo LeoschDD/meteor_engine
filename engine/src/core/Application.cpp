@@ -81,7 +81,7 @@ void meteor::Application::OnUpdate(const float dt)
 void meteor::Application::OnRender()
 {
     shader_->Bind();
-    glBindVertexArray(vertex_array_);
+    vertex_array_->Bind();
     scene_manager_->GetScene()->OnRender();
 
     glDrawElements(GL_TRIANGLES, index_buffer_->GetCount(), GL_UNSIGNED_INT, nullptr);
@@ -91,9 +91,6 @@ void meteor::Application::OnRender()
 meteor::Application::Application()
 {
     Init();
-
-    glGenVertexArrays(1, &vertex_array_);
-    glBindVertexArray(vertex_array_);
 
     std::vector<float> vertices  = {
         -0.5f, -0.5f,  0.0f,
@@ -107,8 +104,11 @@ meteor::Application::Application()
 
     vertex_buffer_ = std::make_unique<VertexBuffer>(vertices);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
+    BufferLayout layout;
+    layout.Push(GL_FLOAT, 3, false);
+
+    vertex_array_ = std::make_unique<VertexArray>();
+    vertex_array_->AddBuffer(*vertex_buffer_, layout);
 
     index_buffer_ = std::make_unique<IndexBuffer>(indices);
 }   
@@ -123,8 +123,6 @@ void meteor::Application::Run()
     running_ = true;
     while (running_)
     {
-        window_->OnUpdate();
-
         for (auto& event : window_->GetEventQueue())
         {
             OnEvent(*event);

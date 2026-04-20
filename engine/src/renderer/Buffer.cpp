@@ -1,5 +1,19 @@
-#include "Buffer.hpp"
+#include "renderer/Buffer.hpp"
 #include "core/Headers.hpp"
+
+////////////////////////////////////////////////////
+// Buffer layout ///////////////////////////////////
+////////////////////////////////////////////////////
+
+void meteor::BufferLayout::Push(uint32_t type, uint32_t count, bool normalized)
+{
+    uint32_t size = LayoutElement::GetTypeSize(type); 
+    if (size != 0) 
+    {
+        elements_.push_back({type, count, normalized}); 
+        stride_ += size * count;
+    }
+}
 
 ////////////////////////////////////////////////////
 // Vertex buffer ///////////////////////////////////
